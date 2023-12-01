@@ -6,10 +6,13 @@ namespace Rot
 {
     public class LevelManager : MonoBehaviour
     {
+        [SerializeField] private MapView _mapView;
+
+
         void Start()
         {
             MapModel model = new(4);
-            foreach (Tile tile in model.AllTiles) Debug.Log(tile.ModelPosition);
+            _mapView.DrawMap(model.AllTiles);
         }
     }
 }
