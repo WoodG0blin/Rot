@@ -4,19 +4,34 @@ using UnityEngine;
 
 public class TileView : MonoBehaviour
 {
-    [SerializeField] private Color _base;
-    [SerializeField] private Color _selected;
-
     private Renderer _renderer;
+
+    [SerializeField] private Material _base;
+    [SerializeField] private Material _select;
+    
+    private bool _selected;
+
+    private bool selected
+    {
+        get => _selected;
+        set
+        {
+            _selected = value;
+            SetSelection(_selected);
+        }
+    }
+
+
+    public void OnClick() => selected = !selected;
+
 
     private void Start()
     {
-        _renderer = transform.GetComponent<Renderer>();
-        SetSelection(false);
+        _renderer = transform.GetComponentInChildren<Renderer>();
+        selected = false;
     }
 
-    public void SetSelection(bool selected)
-    {
-        _renderer.sharedMaterial.color = selected ? _selected : _base;
-    }
+    private void SetSelection(bool selected) =>
+        _renderer.material = selected ? _select : _base;
+
 }

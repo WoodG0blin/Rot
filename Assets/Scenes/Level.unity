@@ -154,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 6291252562042406474, guid: ac3857f5f776c3048809bab4eb2aaf8d,
     type: 3}
+  _camera: {fileID: 1199974560}
 --- !u!4 &983930954
 Transform:
   m_ObjectHideFlags: 0
@@ -247,8 +248,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1199974558}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.5284753, y: 0.003816399, z: -0.0023753988, w: 0.84893686}
+  m_LocalPosition: {x: 1.1929125, y: 5.6375103, z: -1.0948267}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
