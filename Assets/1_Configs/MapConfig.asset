@@ -16,31 +16,36 @@ MonoBehaviour:
   _tileConfigs:
   - _type: 0
     _probability: 0
-    _baseMaterial: {fileID: 0}
+    _baseMaterial: {fileID: 2100000, guid: 0b7a0e2a982575a44ab1c49d6e931cb1, type: 2}
     _isPassable: 0
     _passingCost: 0
   - _type: 1
     _probability: 40
-    _baseMaterial: {fileID: 0}
+    _baseMaterial: {fileID: 2100000, guid: c170fa9ff1b2f364a8959f2ddb527c8e, type: 2}
     _isPassable: 1
     _passingCost: 1
   - _type: 2
     _probability: 20
-    _baseMaterial: {fileID: 0}
+    _baseMaterial: {fileID: 2100000, guid: 56a7a6a558ade68429e11e410ac19beb, type: 2}
     _isPassable: 1
-    _passingCost: 2
+    _passingCost: 5
   - _type: 3
     _probability: 10
-    _baseMaterial: {fileID: 0}
+    _baseMaterial: {fileID: 2100000, guid: ddc11cc42db5726449e31f1feae6c4e4, type: 2}
     _isPassable: 1
-    _passingCost: 2
+    _passingCost: 5
   - _type: 4
     _probability: 20
-    _baseMaterial: {fileID: 0}
+    _baseMaterial: {fileID: 2100000, guid: 5529391215170434ab7b507f42643e73, type: 2}
     _isPassable: 1
-    _passingCost: 3
+    _passingCost: 10
   - _type: 5
     _probability: 10
-    _baseMaterial: {fileID: 0}
-    _isPassable: 1
-    _passingCost: 3
+    _baseMaterial: {fileID: 2100000, guid: 18f74e12ad1a97e4e9768fc5f953f731, type: 2}
+    _isPassable: 0
+    _passingCost: 10
+  - _type: 6
+    _probability: 10
+    _baseMaterial: {fileID: 2100000, guid: 18f74e12ad1a97e4e9768fc5f953f731, type: 2}
+    _isPassable: 0
+    _passingCost: 10

@@ -17,6 +17,7 @@ namespace Rot
         Hills,
         Swamp,
         Forest,
-        Mountains
+        Mountains,
+        Pond
     }
 }
