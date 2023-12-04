@@ -12,7 +12,7 @@ namespace Rot
 
         void Start()
         {
-            MapModel model = new(4);
+            MapModel model = new(10);
 
             _mapView.DrawMap(model.AllTiles);
 

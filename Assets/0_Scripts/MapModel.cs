@@ -15,14 +15,14 @@ namespace Rot
         {
             get
             {
-                int i = GetTransformedIndex(x);
-                int j = GetTransformedIndex(y);
+                int i = GetBaseIndex(x);
+                int j = GetBaseIndex(y);
                 return _baseArray[i,j];
             }
             set
             {
-                int i = GetTransformedIndex(x);
-                int j = GetTransformedIndex(y);
+                int i = GetBaseIndex(x);
+                int j = GetBaseIndex(y);
                 _baseArray[i,j] = value;
             }
         }
@@ -40,9 +40,9 @@ namespace Rot
         }
 
 
-        private int GetTransformedIndex(int index)
+        private int GetBaseIndex(int centeredIndex)
         {
-            var i = Mathf.Clamp(index, 1 - _radius, _radius - 1);
+            var i = Mathf.Clamp(centeredIndex, 1 - _radius, _radius - 1);
             return i + _radius - 1;
         }
 
@@ -58,12 +58,15 @@ namespace Rot
 
                 for (int x = startIndex; x < endIndex; x++)
                 {
-                    _baseArray[x, y] = new(new(x, y));
+                    _baseArray[x, y] = new(GetCenteredCoordinates(x,y));
                     SetAdjoiningTilesAt(x, y);
                     _allTiles.Add(_baseArray[x, y]);
                 }
             }
         }
+
+        private Vector2Int GetCenteredCoordinates(int baseX, int baseY) =>
+            new Vector2Int(baseX - _radius + 1, baseY - _radius + 1);
 
         private void SetAdjoiningTilesAt(int x, int y)
         {
