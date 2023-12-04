@@ -7,6 +7,8 @@ namespace Rot
 {
     internal class MapModel
     {
+        private MapConfig _config;
+
         private int _radius;
         private Tile[,] _baseArray;
         private List<Tile> _allTiles;
@@ -30,10 +32,12 @@ namespace Rot
         internal List<Tile> AllTiles => _allTiles;
 
 
-        internal MapModel(int radius)
+        internal MapModel(MapConfig config)
         {
-            _radius = radius;
-            int modelSize = 2 * radius - 1;
+            _config = config;
+
+            _radius = _config.Radius;
+            int modelSize = 2 * _radius - 1;
             _baseArray = new Tile[modelSize, modelSize];
             _allTiles = new();
 
@@ -59,9 +63,11 @@ namespace Rot
 
                 for (int x = startIndex; x < endIndex; x++)
                 {
-                    _baseArray[x, y] = new(GetCenteredCoordinates(x,y));
+                    var t = new Tile(GetCenteredCoordinates(x, y));
+                    _baseArray[x, y] = t;
+                    t.Init(_config.GetTileConfig(_config.GetRandomTileType()));
                     SetAdjoiningTilesAt(x, y);
-                    _allTiles.Add(_baseArray[x, y]);
+                    _allTiles.Add(t);
                 }
             }
         }

@@ -5,9 +5,9 @@ using UnityEngine;
 public class TileView : MonoBehaviour
 {
     private Renderer _renderer;
+    private Transform _transform;
 
-    [SerializeField] private Material _base;
-    [SerializeField] private Material _select;
+    [SerializeField] private Transform _selection;
     
     private bool _selected;
 
@@ -23,15 +23,18 @@ public class TileView : MonoBehaviour
 
 
     public void OnClick() => selected = !selected;
-
-
-    private void Start()
+    public void Init(Vector3 position, Material material)
     {
-        _renderer = transform.GetComponentInChildren<Renderer>();
+        _transform ??= transform;
+        _transform.position = position;
+
+        _renderer ??= _transform.GetComponentInChildren<Renderer>();
+        _renderer.material = material;
+
         selected = false;
     }
 
     public void SetSelection(bool selected) =>
-        _renderer.material = selected ? _select : _base;
+        _selection.gameObject.SetActive(selected);
 
 }

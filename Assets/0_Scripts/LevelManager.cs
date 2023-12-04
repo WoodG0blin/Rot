@@ -6,14 +6,16 @@ namespace Rot
 {
     public class LevelManager : MonoBehaviour
     {
+        [SerializeField] private MapConfig _config;
         [SerializeField] private MapView _mapView;
         [SerializeField] private InputManager _inputManager;
         [SerializeField] private CameraView _cameraView;
 
         void Start()
         {
-            MapModel model = new(10);
+            MapModel model = new(_config);
 
+            _mapView.Init(_config.GetBaseMaterial);
             _mapView.DrawMap(model.AllTiles);
             _mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(model[p.x, p.y], model[0, 0]));
             //_mapView.OnTileClick = p => _mapView.DrawAdjoining(model[p.x, p.y].AdjoiningTiles);

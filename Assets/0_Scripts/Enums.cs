@@ -10,5 +10,13 @@ namespace Rot
         E
     }
 
-
+    internal enum TileTypes
+    {
+        Border,
+        Field,
+        Hills,
+        Swamp,
+        Forest,
+        Mountains
+    }
 }

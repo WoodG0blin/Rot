@@ -6,12 +6,12 @@ namespace Rot
 {
     internal class Tile : IPathFinderTile
     {
-        private Vector2Int _modelPosition;
         private Dictionary<TileDirections, Tile> _adjoiningTiles;
 
 
-        public Vector2Int ModelPosition => _modelPosition; 
-        public List<Tile> AdjoiningTiles => _adjoiningTiles.Values.ToList();
+        public Vector2Int ModelPosition { get; private set; } 
+        public TileTypes Type { get; private set; }
+        public List<Tile> AdjoiningTiles => _adjoiningTiles.Values.Where(v => v != null).ToList();
         public int Cost { get; private set; }
 
         List<IPathFinderTile> IPathFinderTile.AdjoiningTiles => new List<IPathFinderTile>(AdjoiningTiles.Cast<IPathFinderTile>());
@@ -23,10 +23,15 @@ namespace Rot
 
         internal Tile(Vector2Int modelPosition)
         {
-            _modelPosition = modelPosition;
+            ModelPosition = modelPosition;
             _adjoiningTiles = new Dictionary<TileDirections, Tile>();
             for (int i = 0; i < 6; i++) _adjoiningTiles.Add((TileDirections)i, null);
-            Cost = 1;
+        }
+
+        internal void Init(TileConfig config)
+        {
+            Type = config.Type;
+            Cost = config.PassingCost;
         }
 
         internal void SetAdjoiningTileAt(TileDirections direction, Tile tile)

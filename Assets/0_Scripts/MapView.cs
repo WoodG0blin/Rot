@@ -13,6 +13,7 @@ namespace Rot
 
         private Vector2[] _baseVectors;
         private Vector2[] _inversedBaseVectors;
+        private Func<TileTypes, Material> _getMaterial;
 
         private Dictionary<Vector2Int, TileView> _drawnTiles;
         private bool _initiated = false;
@@ -20,7 +21,11 @@ namespace Rot
 
         internal Action<Vector2Int> OnTileClick;
 
-
+        internal void Init(Func<TileTypes, Material> getMaterial)
+        {
+            _getMaterial = getMaterial;
+            Init();
+        }
         internal void DrawMap(List<Tile> tiles)
         {
             if (!_initiated) Init();
@@ -30,9 +35,10 @@ namespace Rot
 
             foreach (Tile tile in tiles)
             {
-                var t = Instantiate(tilePrefab, transform);
-                t.position = MapToWorldCoordinates(tile.ModelPosition);
-                _drawnTiles.Add(tile.ModelPosition, t.GetComponent<TileView>());
+                var t = Instantiate(tilePrefab, transform).GetComponent<TileView>();
+                t.Init(MapToWorldCoordinates(tile.ModelPosition), _getMaterial?.Invoke(tile.Type));
+                 
+                _drawnTiles.Add(tile.ModelPosition, t);
             }
         }
 
@@ -51,7 +57,7 @@ namespace Rot
         internal async void DrawAdjoining(List<Tile> tiles)
         {
             foreach(var t in tiles)
-                if(t != null) _drawnTiles[t.ModelPosition].SetSelection(true);
+                _drawnTiles[t.ModelPosition].SetSelection(true);
         }
 
         internal async void DrawPath(Stack<Vector2Int> path)

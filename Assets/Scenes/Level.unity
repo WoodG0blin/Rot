@@ -152,6 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 086e163494a376843893d32d3f02f5a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _config: {fileID: 11400000, guid: d26380818d8985c4e9d30d66a5cb40b5, type: 2}
   _mapView: {fileID: 983930953}
   _inputManager: {fileID: 906966328}
   _cameraView: {fileID: 1199974564}
