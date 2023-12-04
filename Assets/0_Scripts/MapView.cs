@@ -8,42 +8,18 @@ namespace Rot
     internal class MapView : MonoBehaviour
     {
         [SerializeField] Transform tilePrefab;
-        [SerializeField] Camera _camera;
 
         private Vector2[] _baseVectors;
         private Vector2[] _inversedBaseVectors;
 
         private Dictionary<Vector2Int, TileView> _drawnTiles;
-
-        private Vector3 _currentClick;
-        private Plane _plane = new Plane(Vector3.up, 0);
-
-        private void Start()
-        {
-            _baseVectors = new Vector2[2] { new Vector2(0.866f, 0), new Vector2(-0.433f, 0.75f)};
-            SetInverseBaseVectors();
-        }
-
-        private void Update()
-        {
-            float distance;
-
-            if(Input.GetMouseButtonDown(0))
-            {
-                Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
-                if(_plane.Raycast(ray, out distance)) _currentClick = ray.GetPoint(distance);
-                Vector2Int modelCoordinates = WorldToMapCoordinates(_currentClick);
-                Debug.Log($"Click at {_currentClick}, MapCoordinates: {modelCoordinates}");
-                if (_drawnTiles.ContainsKey(modelCoordinates))
-                {
-                    _drawnTiles[modelCoordinates]?.OnClick();
-                }
-            }
-        }
+        private bool _initiated = false;
 
 
         internal void DrawMap(List<Tile> tiles)
         {
+            if (!_initiated) Init();
+
             Clear();
             _drawnTiles = new();
 
@@ -55,6 +31,23 @@ namespace Rot
             }
         }
 
+        internal void ProcesClick(Vector3 position)
+        {
+            Vector2Int modelCoordinates = WorldToMapCoordinates(position);
+
+            if (_drawnTiles.ContainsKey(modelCoordinates))
+            {
+                _drawnTiles[modelCoordinates]?.OnClick();
+            }
+        }
+
+
+        private void Init()
+        {
+            _baseVectors = new Vector2[2] { new Vector2(0.866f, 0), new Vector2(-0.433f, 0.75f)};
+            SetInverseBaseVectors();
+            _initiated = true;
+        }
 
         private void Clear()
         {
