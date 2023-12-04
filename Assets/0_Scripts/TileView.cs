@@ -31,7 +31,7 @@ public class TileView : MonoBehaviour
         selected = false;
     }
 
-    private void SetSelection(bool selected) =>
+    public void SetSelection(bool selected) =>
         _renderer.material = selected ? _select : _base;
 
 }

@@ -15,10 +15,17 @@ namespace Rot
             MapModel model = new(10);
 
             _mapView.DrawMap(model.AllTiles);
+            _mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(model[p.x, p.y], model[0, 0]));
+            //_mapView.OnTileClick = p => _mapView.DrawAdjoining(model[p.x, p.y].AdjoiningTiles);
 
-            _inputManager.OnClick = p => _mapView.ProcesClick(_cameraView.ScreenToMapCoordinates(p));
+            _inputManager.OnClick = ReactOnClick;
             _inputManager.OnDrag = _cameraView.MoveCamera;
             _inputManager.OnScroll = _cameraView.ZoomCamera;
+        }
+
+        private void ReactOnClick(Vector3 position)
+        {
+            _mapView.ProcessClick(_cameraView.ScreenToMapCoordinates(position));
         }
     }
 }

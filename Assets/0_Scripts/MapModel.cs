@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Rot
@@ -71,41 +72,10 @@ namespace Rot
         private void SetAdjoiningTilesAt(int x, int y)
         {
             Tile tile = _baseArray[x, y];
-            if(y > 0 && x < _baseArray.GetLength(0)-1) tile.SetAdjoiningTileAt(TileDirections.SE, _baseArray[x + 1, y - 1]);
-            if(y > 0) tile.SetAdjoiningTileAt(TileDirections.SW, _baseArray[x, y - 1]);
+            if(y > 0) tile.SetAdjoiningTileAt(TileDirections.SE, _baseArray[x, y - 1]);
+            if(y > 0 && x > 0) tile.SetAdjoiningTileAt(TileDirections.SW, _baseArray[x-1, y - 1]);
             if(x > 0) tile.SetAdjoiningTileAt(TileDirections.W, _baseArray[x - 1, y]);
         }
-    }
-
-    internal class Tile
-    {
-        private Vector2Int _modelPosition;
-        private Dictionary<TileDirections, Tile> _adjoiningTiles;
-
-        internal Vector2Int ModelPosition => _modelPosition;
-        internal Tile(Vector2Int modelPosition)
-        {
-            _modelPosition = modelPosition;
-            _adjoiningTiles = new Dictionary<TileDirections, Tile>();
-            for (int i = 0; i < 6; i++) _adjoiningTiles.Add((TileDirections)i, null);
-        }
-
-        internal void SetAdjoiningTileAt(TileDirections direction, Tile tile)
-        {
-            _adjoiningTiles[direction] = tile;
-            int reverseDirection = (int)direction + 3;
-            if (reverseDirection < 6 && tile != null) tile.SetAdjoiningTileAt((TileDirections)reverseDirection, this);
-        }
-    }
-
-    internal enum TileDirections
-    {
-        SE,
-        SW,
-        W,
-        NW,
-        NE,
-        E
     }
 }
 

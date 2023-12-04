@@ -1,6 +1,8 @@
 using Rot;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Rot
@@ -14,6 +16,9 @@ namespace Rot
 
         private Dictionary<Vector2Int, TileView> _drawnTiles;
         private bool _initiated = false;
+
+
+        internal Action<Vector2Int> OnTileClick;
 
 
         internal void DrawMap(List<Tile> tiles)
@@ -31,16 +36,33 @@ namespace Rot
             }
         }
 
-        internal void ProcesClick(Vector3 position)
+        internal void ProcessClick(Vector3 position)
         {
             Vector2Int modelCoordinates = WorldToMapCoordinates(position);
 
             if (_drawnTiles.ContainsKey(modelCoordinates))
             {
+                ClearDrawn();
                 _drawnTiles[modelCoordinates]?.OnClick();
+                OnTileClick?.Invoke(modelCoordinates);
             }
         }
 
+        internal async void DrawAdjoining(List<Tile> tiles)
+        {
+            foreach(var t in tiles)
+                if(t != null) _drawnTiles[t.ModelPosition].SetSelection(true);
+        }
+
+        internal async void DrawPath(Stack<Vector2Int> path)
+        {
+            while (path.Count > 0)
+            {
+                var t = path.Pop();
+                if (_drawnTiles.ContainsKey(t)) _drawnTiles[t].SetSelection(true);
+                await Task.Delay(100);
+            }
+        }
 
         private void Init()
         {
@@ -57,6 +79,11 @@ namespace Rot
                 tr.SetParent(null);
                 GameObject.Destroy(tr.gameObject);
             }
+        }
+
+        private void ClearDrawn()
+        {
+            foreach(var v in _drawnTiles.Values) v.SetSelection(false);
         }
 
         private void SetInverseBaseVectors()
