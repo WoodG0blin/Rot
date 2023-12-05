@@ -13,6 +13,8 @@ namespace Rot
         private Tile[,] _baseArray;
         private List<Tile> _allTiles;
 
+        internal Vector2Int PlayerStartPosition { get; private set; }
+        internal Vector2Int EnemyStartPosition { get; private set; }
 
         internal Tile this[int x, int y]
         {
@@ -43,7 +45,7 @@ namespace Rot
 
             CreateTiles();
             foreach(var t in AllTiles) t.SetInfluencingTiles();
-            SetInitialEnemy();
+            SetInitialPositions();
         }
 
 
@@ -85,9 +87,17 @@ namespace Rot
             if(x > 0) tile.SetAdjoiningTileAt(TileDirections.W, _baseArray[x - 1, y]);
         }
 
-        private void SetInitialEnemy()
+        private void SetInitialPositions()
         {
-            AllTiles[UnityEngine.Random.Range(0, AllTiles.Count)].ReceiveExternalInfluence(-BaseValues.BaseVitality);
+            PlayerStartPosition = new(0, 0);
+
+            int enemyStart = UnityEngine.Random.Range(0, AllTiles.Count);
+
+            while (Vector2.SqrMagnitude(AllTiles[enemyStart].ModelPosition - PlayerStartPosition) < _radius)
+                enemyStart = UnityEngine.Random.Range(0, AllTiles.Count);
+
+            EnemyStartPosition = AllTiles[enemyStart].ModelPosition;
+            AllTiles[enemyStart].ReceiveExternalInfluence(-BaseValues.BaseVitality);
         }
     }
 }
