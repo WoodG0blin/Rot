@@ -63,7 +63,6 @@ namespace Rot
         internal void ProcessExternalInfluence()
         {
             float influence = 0;
-            if (_influencingTiles == null) SetInfluencingTiles();
 
             foreach (var kvp in _influencingTiles)
                 influence += kvp.Key.Influence / kvp.Value;
@@ -73,7 +72,7 @@ namespace Rot
         internal int SetExternalInfluence() =>
             Influence = Mathf.Clamp(Vitality - BaseValues.BaseVitality, -BaseValues.BaseVitality, BaseValues.BaseVitality);
 
-        private void SetInfluencingTiles()
+        internal void SetInfluencingTiles()
         {
             if (_influencingTiles != null) return;
 

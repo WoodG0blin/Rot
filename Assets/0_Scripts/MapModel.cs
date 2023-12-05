@@ -42,6 +42,7 @@ namespace Rot
             _allTiles = new();
 
             CreateTiles();
+            foreach(var t in AllTiles) t.SetInfluencingTiles();
             SetInitialEnemy();
         }
 
