@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class TileView : MonoBehaviour
@@ -8,6 +9,8 @@ public class TileView : MonoBehaviour
     private Transform _transform;
 
     [SerializeField] private Transform _selection;
+    [SerializeField] private Transform _mask;
+    [SerializeField] private TextMeshProUGUI _message;
     
     private bool _selected;
 
@@ -33,8 +36,15 @@ public class TileView : MonoBehaviour
 
         selected = false;
     }
+    public void UpdateTile(bool isAlive, int vitality)
+    {
+        SetMask(!isAlive);
+        _message.text = vitality.ToString();
+    }
 
     public void SetSelection(bool selected) =>
         _selection.gameObject.SetActive(selected);
 
+    public void SetMask(bool mask) =>
+        _mask.gameObject.SetActive(mask);
 }

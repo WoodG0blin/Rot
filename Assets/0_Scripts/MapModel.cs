@@ -42,6 +42,7 @@ namespace Rot
             _allTiles = new();
 
             CreateTiles();
+            SetInitialEnemy();
         }
 
 
@@ -81,6 +82,11 @@ namespace Rot
             if(y > 0) tile.SetAdjoiningTileAt(TileDirections.SE, _baseArray[x, y - 1]);
             if(y > 0 && x > 0) tile.SetAdjoiningTileAt(TileDirections.SW, _baseArray[x-1, y - 1]);
             if(x > 0) tile.SetAdjoiningTileAt(TileDirections.W, _baseArray[x - 1, y]);
+        }
+
+        private void SetInitialEnemy()
+        {
+            AllTiles[UnityEngine.Random.Range(0, AllTiles.Count)].ReceiveExternalInfluence(-BaseValues.BaseVitality);
         }
     }
 }

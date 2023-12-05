@@ -11,18 +11,35 @@ namespace Rot
         [SerializeField] private InputManager _inputManager;
         [SerializeField] private CameraView _cameraView;
 
+        private MapModel _model;
+
+        private float _timer = 0;
+
         void Start()
         {
-            MapModel model = new(_config);
+            _model = new(_config);
 
             _mapView.Init(_config.GetBaseMaterial);
-            _mapView.DrawMap(model.AllTiles);
-            _mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(model[p.x, p.y], model[0, 0]));
-            //_mapView.OnTileClick = p => _mapView.DrawAdjoining(model[p.x, p.y].AdjoiningTiles);
+            _mapView.DrawMap(_model.AllTiles);
+            _mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(_model[p.x, p.y], _model[0, 0]));
+            //_mapView.OnTileClick = p => _mapView.DrawAdjoining(_model[p.x, p.y].AdjoiningTiles);
 
             _inputManager.OnClick = ReactOnClick;
             _inputManager.OnDrag = _cameraView.MoveCamera;
             _inputManager.OnScroll = _cameraView.ZoomCamera;
+        }
+
+        private void FixedUpdate()
+        {
+            _timer += Time.fixedDeltaTime;
+
+            if (_timer > 0.3f)
+            {
+                _timer = 0;
+                foreach (var t in _model.AllTiles) t.SetExternalInfluence();
+                foreach (var t in _model.AllTiles) t.ReceiveExternalInfluence();
+                _mapView.UpdateTiles(_model.AllTiles);
+            }
         }
 
         private void ReactOnClick(Vector3 position)

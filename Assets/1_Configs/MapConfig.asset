@@ -46,6 +46,6 @@ MonoBehaviour:
     _passingCost: 10
   - _type: 6
     _probability: 10
-    _baseMaterial: {fileID: 2100000, guid: 18f74e12ad1a97e4e9768fc5f953f731, type: 2}
+    _baseMaterial: {fileID: 2100000, guid: aecc1b5c575404f4c8ff010a6a36f5ab, type: 2}
     _isPassable: 0
     _passingCost: 10
