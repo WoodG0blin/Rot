@@ -58,17 +58,16 @@ namespace Rot
         internal void ReceiveExternalInfluence(int extraInfluence)
         {
             Vitality += extraInfluence;
-            ReceiveExternalInfluence();
         }
 
-        internal void ReceiveExternalInfluence()
+        internal void ProcessExternalInfluence()
         {
             float influence = 0;
             if (_influencingTiles == null) SetInfluencingTiles();
 
             foreach (var kvp in _influencingTiles)
                 influence += kvp.Key.Influence / kvp.Value;
-            Vitality += Mathf.RoundToInt(influence);
+            ReceiveExternalInfluence(Mathf.RoundToInt(influence));
         }
 
         internal int SetExternalInfluence() =>

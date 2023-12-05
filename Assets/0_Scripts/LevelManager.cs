@@ -37,7 +37,7 @@ namespace Rot
             {
                 _timer = 0;
                 foreach (var t in _model.AllTiles) t.SetExternalInfluence();
-                foreach (var t in _model.AllTiles) t.ReceiveExternalInfluence();
+                foreach (var t in _model.AllTiles) t.ProcessExternalInfluence();
                 _mapView.UpdateTiles(_model.AllTiles);
             }
         }
