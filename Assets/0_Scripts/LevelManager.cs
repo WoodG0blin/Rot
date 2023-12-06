@@ -21,7 +21,8 @@ namespace Rot
 
             _mapView.Init(_config.GetBaseMaterial);
             _mapView.DrawMap(_model.AllTiles);
-            _mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(_model[p.x, p.y], _model[0, 0]));
+            _mapView.OnTileClick = p => { _model[p.x, p.y].SetLocation(); _mapView.UpdateTiles(_model.AllTiles); };
+            //_mapView.OnTileClick = p => _mapView.DrawPath(PathFinder.GetPath(_model[p.x, p.y], _model[0, 0]));
             //_mapView.OnTileClick = p => _mapView.DrawAdjoining(_model[p.x, p.y].AdjoiningTiles);
 
             _inputManager.OnClick = ReactOnClick;
@@ -33,7 +34,7 @@ namespace Rot
         {
             _timer += Time.fixedDeltaTime;
 
-            if (_timer > 0.3f)
+            if (_timer > 0.9f)
             {
                 _timer = 0;
                 foreach (var t in _model.AllTiles) t.SetExternalInfluence();

@@ -18,7 +18,7 @@ namespace Rot
         [SerializeField] private bool _inversed;
 
         [SerializeField, Range(1, 10)] private int _zoomSensitivity = 1;
-        [SerializeField, Range(5, 10)] private int _maxZoomDistance = 10;
+        [SerializeField, Range(5, 20)] private int _maxZoomDistance = 10;
         private int _minZoomDistance = 1;
 
         private Camera _camera;

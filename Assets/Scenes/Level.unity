@@ -398,7 +398,7 @@ MonoBehaviour:
   _moveSensitivity: 5
   _inversed: 0
   _zoomSensitivity: 5
-  _maxZoomDistance: 10
+  _maxZoomDistance: 20
 --- !u!1 &1789036747
 GameObject:
   m_ObjectHideFlags: 0

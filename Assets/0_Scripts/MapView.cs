@@ -37,7 +37,7 @@ namespace Rot
             {
                 var t = Instantiate(tilePrefab, transform).GetComponent<TileView>();
                 t.Init(MapToWorldCoordinates(tile.ModelPosition), _getMaterial?.Invoke(tile.Type));
-                t.UpdateTile(tile.IsAlive, tile.Vitality);
+                t.UpdateTile(tile.IsAlive, tile.Vitality, tile.HasLocation, tile.HasLocation ? tile.Location.Vitality : 0);
                 _drawnTiles.Add(tile.ModelPosition, t);
             }
         }
@@ -46,7 +46,7 @@ namespace Rot
         {
             foreach (var t in tiles)
                 if (_drawnTiles.ContainsKey(t.ModelPosition))
-                    _drawnTiles[t.ModelPosition].UpdateTile(t.IsAlive, t.Vitality);
+                    _drawnTiles[t.ModelPosition].UpdateTile(t.IsAlive, t.Vitality, t.HasLocation, t.HasLocation ? t.Location.Vitality : 0);
         }
 
         internal void ProcessClick(Vector3 position)

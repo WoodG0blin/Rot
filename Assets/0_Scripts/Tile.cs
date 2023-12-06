@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace Rot
 {
@@ -9,6 +10,7 @@ namespace Rot
         private int _vitality;
         private Dictionary<TileDirections, Tile> _adjoiningTiles;
         private Dictionary<Tile, int> _influencingTiles;
+        private Location _location;
 
         public Vector2Int ModelPosition { get; private set; } 
         public TileTypes Type { get; private set; }
@@ -25,6 +27,8 @@ namespace Rot
         }
         public List<Tile> AdjoiningTiles => _adjoiningTiles.Values.Where(v => v != null).ToList();
         public bool IsAlive => Vitality > 0;
+        public bool HasLocation => _location != null && _location.IsAlive;
+        public Location Location => _location;
 
 
         List<IPathFinderTile> IPathFinderTile.AdjoiningTiles => new List<IPathFinderTile>(AdjoiningTiles.Cast<IPathFinderTile>());
@@ -55,9 +59,11 @@ namespace Rot
             if (reverseDirection < 6 && tile != null) tile.SetAdjoiningTileAt((TileDirections)reverseDirection, this);
         }
 
-        internal void ReceiveExternalInfluence(int extraInfluence)
+        internal void ReceiveExternalInfluence(int externalInfluence)
         {
-            Vitality += extraInfluence;
+            int value = externalInfluence;
+            _location?.TryGetInfluence(ref value);
+            Vitality += value;
         }
 
         internal void ProcessExternalInfluence()
@@ -65,12 +71,13 @@ namespace Rot
             float influence = 0;
 
             foreach (var kvp in _influencingTiles)
-                influence += kvp.Key.Influence / kvp.Value;
+                influence += (float) kvp.Key.Influence / kvp.Value;
             ReceiveExternalInfluence(Mathf.RoundToInt(influence));
         }
 
         internal int SetExternalInfluence() =>
-            Influence = Mathf.Clamp(Vitality - BaseValues.BaseVitality, -BaseValues.BaseVitality, BaseValues.BaseVitality);
+            Influence = Mathf.Clamp(Vitality + (_location != null ? _location.Vitality + 3 : 0) - BaseValues.BaseVitality,
+                -BaseValues.BaseVitality, 2 * BaseValues.BaseVitality);
 
         internal void SetInfluencingTiles()
         {
@@ -85,8 +92,10 @@ namespace Rot
                 foreach (var tt in t.AdjoiningTiles)
                     if (tt != this && !_influencingTiles.ContainsKey(tt))
                         // how to set next level decrement?
-                        _influencingTiles.Add(tt, 5 * BaseValues.InfluenceDecrement);
+                        _influencingTiles.Add(tt, 6 * BaseValues.InfluenceDecrement);
         }
+
+        internal void SetLocation() => _location ??= new(BaseValues.BaseVitality, 0);
     }
 }
 

@@ -25,7 +25,7 @@ MonoBehaviour:
     _isPassable: 1
     _passingCost: 1
   - _type: 2
-    _probability: 20
+    _probability: 10
     _baseMaterial: {fileID: 2100000, guid: 56a7a6a558ade68429e11e410ac19beb, type: 2}
     _isPassable: 1
     _passingCost: 5
