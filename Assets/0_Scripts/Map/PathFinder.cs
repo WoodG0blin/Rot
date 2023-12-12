@@ -5,11 +5,9 @@ using UnityEngine;
 
 namespace Rot
 {
-    internal interface IPathFinderTile
+    internal interface IPathFinderTile : IPathInfo
     {
-        Vector2Int ModelPosition { get; }
         List<IPathFinderTile> AdjoiningTiles { get; }
-        int Cost { get; }
 
         int PathCostEstimate { get; set; }
         int CostSoFar { get; set; }
@@ -20,10 +18,22 @@ namespace Rot
 
     internal static class PathFinder
     {
-        internal static Stack<Vector2Int> GetPath(IPathFinderTile startTile, IPathFinderTile finishTile)
+        private static MapModel _currentModel;
+
+        internal static void Init(MapModel mapModel)
+        {
+            Debug.Log($"Current model is not null: {mapModel != null}");
+            _currentModel = mapModel;
+        }
+
+        internal static Stack<IPathInfo> GetPath(Vector2Int startPosition, Vector2Int finishPosition)
         {
             List<IPathFinderTile> _tilesToCheck = new();
             List<IPathFinderTile> _visited = new();
+
+            IPathFinderTile startTile = _currentModel[startPosition.x, startPosition.y];
+            IPathFinderTile finishTile = _currentModel[finishPosition.x, finishPosition.y];
+
 
             _tilesToCheck.Add(startTile);
 
@@ -67,13 +77,13 @@ namespace Rot
             }
         }
 
-        private static Stack<Vector2Int> SetPath(IPathFinderTile start, IPathFinderTile finish)
+        private static Stack<IPathInfo> SetPath(IPathFinderTile start, IPathFinderTile finish)
         {
-            Stack<Vector2Int> path = new();
+            Stack<IPathInfo> path = new();
             IPathFinderTile next = finish;
             while(next.ModelPosition != start.ModelPosition)
             {
-                path.Push(next.ModelPosition);
+                path.Push(next);
                 next = next.Previous;
             }
             return path;

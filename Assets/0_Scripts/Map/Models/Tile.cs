@@ -5,7 +5,7 @@ using static UnityEngine.Rendering.DebugUI;
 
 namespace Rot
 {
-    internal class Tile : IPathFinderTile
+    internal class Tile : IPathFinderTile, IReceivingInfluence, IBuildable
     {
         private int _vitality;
         private Dictionary<TileDirections, Tile> _adjoiningTiles;
@@ -38,6 +38,19 @@ namespace Rot
         IPathFinderTile IPathFinderTile.Previous { get; set; }
 
 
+        internal IBuildable Buildable => this;
+        bool IBuildable.IsBuildAvailable => true;
+        int IBuildable.RequestBuildRequirements()
+        {
+            return 5;
+        }
+
+        void IBuildable.StopBuild(bool finished)
+        {
+            if (finished) SetLocation();
+        }
+
+
         internal Tile(Vector2Int modelPosition)
         {
             ModelPosition = modelPosition;
@@ -59,7 +72,7 @@ namespace Rot
             if (reverseDirection < 6 && tile != null) tile.SetAdjoiningTileAt((TileDirections)reverseDirection, this);
         }
 
-        internal void ReceiveExternalInfluence(int externalInfluence)
+        public void ReceiveExternalInfluence(int externalInfluence)
         {
             int value = externalInfluence;
             _location?.TryGetInfluence(ref value);

@@ -46,6 +46,8 @@ namespace Rot
             CreateTiles();
             foreach(var t in AllTiles) t.SetInfluencingTiles();
             SetInitialPositions();
+
+            PathFinder.Init(this);
         }
 
 
