@@ -10,6 +10,8 @@ namespace Rot
 {
     public abstract class BaseUnit : IReceivingInfluence, IDamagable
     {
+        private bool _abortAct;
+
         private int _vitality;
         private int _minVitality;
         private int _maxVitality;
@@ -42,16 +44,19 @@ namespace Rot
         }
 
         public bool IsAlive => Vitality > 0;
+        public bool HasTask => currentCommand != null;
+        public bool FinishedActions { get; private set; }
 
 
         internal Action OnDeath { get; set; }
-        internal Action OnTurnEnd { get; set; }
         internal Func<Vector2Int, Tile> GetTile { get; set; }
 
 
-        public BaseUnit(UnitView view, bool alive, int maxDefence, int speed)
+        public BaseUnit(UnitView view, Vector2Int initialPosition, bool alive, int maxDefence, int speed)
         {
             unitView= view;
+            modelPosition = initialPosition;
+            view.SetInitialPosition(modelPosition);
             
             if(alive)
             {
@@ -74,13 +79,15 @@ namespace Rot
 
         public abstract void ReceiveExternalInfluence(int externalInfluence);
         public abstract void ReceiveDamage(int damage);
+        public void InitAction() => FinishedActions = false;
         public async Task Act(bool auto = false)
         {
-            bool _needInput = auto ? currentCommand == null : true;
+            _abortAct = false;
+            bool _needInput = auto ? !HasTask : true;
 
             int remainingSpeed = _speed;
 
-            while(remainingSpeed > 0)
+            while(!_abortAct && remainingSpeed > 0)
             {
                 if (_needInput) currentCommand = await RequestInput();
                 if (currentCommand == null) return;
@@ -88,8 +95,10 @@ namespace Rot
                 remainingSpeed -= await currentCommand.Execute(remainingSpeed);
                 CheckCurrentCommand(ref _needInput);
             }
-        }
 
+            FinishedActions = true;
+        }
+        public void AbortAct() => _abortAct = true;
 
         protected async Task<ICommand> RequestInput()
         {
@@ -131,13 +140,17 @@ namespace Rot
 
         private void CheckCurrentCommand(ref bool needInput)
         {
-            if (currentCommand != null && currentCommand.IsFinished)
+            if (HasTask && currentCommand.IsFinished)
             {
                 currentCommand = null;
                 needInput = true;
             }
         }
         private async Task RequestHeal() => ReceiveDamage(-BaseValues.BaseVitality / 2);
-        private void Die() => OnDeath?.Invoke();
+        private void Die()
+        {
+            GameObject.Destroy(unitView.gameObject);
+            OnDeath?.Invoke();
+        }
     }
 }

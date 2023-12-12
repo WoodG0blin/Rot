@@ -7,7 +7,8 @@ namespace Rot
 {
     public class PlayerUnit : BaseUnit
     {
-        public PlayerUnit(UnitView view, int maxDefence, int speed) : base(view, true, maxDefence, speed)
+        public PlayerUnit(UnitView view, Vector2Int initialPosition, int maxDefence, int speed)
+            : base(view, initialPosition, true, maxDefence, speed)
         {
         }
 
