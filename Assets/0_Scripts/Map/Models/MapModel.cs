@@ -49,7 +49,7 @@ namespace Rot
 
             PathFinder.Init(this);
         }
-
+        internal Vector2Int GetRandomPosition() => AllTiles[Random.Range(0, AllTiles.Count)].ModelPosition;
 
         private int GetBaseIndex(int centeredIndex)
         {

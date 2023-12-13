@@ -48,6 +48,7 @@ namespace Rot
         public bool FinishedActions { get; private set; }
 
 
+        internal Action OnTurnEnd { get; set; }
         internal Action OnDeath { get; set; }
         internal Func<Vector2Int, Tile> GetTile { get; set; }
 
@@ -80,33 +81,37 @@ namespace Rot
         public abstract void ReceiveExternalInfluence(int externalInfluence);
         public abstract void ReceiveDamage(int damage);
         public void InitAction() => FinishedActions = false;
-        public async Task Act(bool auto = false)
+        public async void Act(bool auto = false)
         {
             _abortAct = false;
             bool _needInput = auto ? !HasTask : true;
 
             int remainingSpeed = _speed;
 
-            while(!_abortAct && remainingSpeed > 0)
+            while(remainingSpeed > 0)
             {
                 if (_needInput) currentCommand = await RequestInput();
-                if (currentCommand == null) return;
+                if (currentCommand == null)
+                {
+                    OnTurnEnd?.Invoke();
+                    return;
+                }
 
                 remainingSpeed -= await currentCommand.Execute(remainingSpeed);
                 CheckCurrentCommand(ref _needInput);
             }
 
             FinishedActions = true;
+            OnTurnEnd?.Invoke();
         }
-        public void AbortAct() => _abortAct = true;
 
         protected async Task<ICommand> RequestInput()
         {
             List<ICommand> availableCommands = new();
 
-            availableCommands.Add(new MoveCommand(unitView, RequestPath));
+            availableCommands.Add(new MoveCommand(unitView, modelPosition));
 
-            foreach (var skill in skills) availableCommands.Add(new AttackCommand(skill, RequestTarget));
+            foreach (var skill in skills) availableCommands.Add(new AttackCommand(skill));
 
             availableCommands.AddRange(InitiateSpecificCommands());
 
@@ -118,8 +123,6 @@ namespace Rot
         }
         protected abstract List<ICommand> InitiateSpecificCommands();
         protected abstract Task<ICommand> SelectCommand(List<ICommand> availableCommands);
-        protected abstract Task<Stack<IPathInfo>> RequestPath();
-        protected abstract Task<IDamagable> RequestTarget();
         protected void TryChangeDefence(ref int change)
         {
             var targetDefence = Defence + change;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,8 @@ namespace Rot
 {
     internal class PlayerManager
     {
-        private SelectedUnitUI _selectedUnitUI;
-        private AllUnitsUI _allUnitsUI;
+        private UIManager _UImanager;
+
         private GameObject _unitPrefab;
         private MapModel _mapModel;
 
@@ -17,13 +18,20 @@ namespace Rot
         private List<PlayerUnit> _killedUnits;
         
         private PlayerUnit _currentAct;
+        private TurnController _turnController;
         private bool _canFinishTurn;
-        public PlayerManager(SelectedUnitUI selectedUnitUI, AllUnitsUI allUnitsUI, GameObject unitPrefab, MapModel model)
-        {
-            _selectedUnitUI = selectedUnitUI;
+        private bool _autoMode;
 
-            _allUnitsUI = allUnitsUI;
-            _allUnitsUI.OnUnitSelection = ChangeSelectedUnit;
+        public Action OnTurnEnd;
+
+
+        public PlayerManager(UIManager UImanager, GameObject unitPrefab, MapModel model)
+        {
+            _UImanager = UImanager;
+            _UImanager.OnUnitSelection = ChangeSelectedUnit;
+
+            _turnController = new();
+            _turnController.OnReadyToFinishTurn = () => _canFinishTurn = true;
 
             _unitPrefab = unitPrefab;
             _mapModel = model;
@@ -31,20 +39,15 @@ namespace Rot
             _killedUnits = new();
         }
 
-        public async Task Act()
+        public void Act()
         {
             ClearKilled();
             _canFinishTurn = false;
+            _autoMode = false;
 
-            foreach(var unit in _allUnits) unit.InitAction();
+            _turnController.Setup(_allUnits);
 
-            List<PlayerUnit> requiredTurn = new(_allUnits.Where(u => !u.HasTask));
-
-            if (requiredTurn != null && requiredTurn.Count > 0)
-                foreach (var unit in requiredTurn) await StartUnitAct(unit);
-
-            while(!_canFinishTurn)
-                if(await _selectedUnitUI) await TryFinishTurn();        
+            SetNextTurn();
         }
 
 
@@ -52,12 +55,29 @@ namespace Rot
         {
             UnitView view = GameObject.Instantiate(_unitPrefab).GetComponent<UnitView>();
             PlayerUnit newUnit = new(view, position, BaseValues.BaseVitality, 2);
+            newUnit.RequestCommand = async c => await _UImanager.GetCommand(newUnit, c);
             newUnit.GetTile = p => _mapModel[p.x, p.y];
             newUnit.OnDeath = () => RemoveUnit(newUnit);
             _allUnits.Add(newUnit);
         }
 
+        private async void SetNextTurn()
+        {
+            if (_canFinishTurn)
+            {
+                _autoMode = await _UImanager.FinishTurnClick();
+                _canFinishTurn = false;
+            }
 
+            _currentAct = _turnController.GetNextTurn();
+
+            if (_currentAct != null) _currentAct.Act(_autoMode);
+            else
+            {
+                await _UImanager.FinishTurnClick();
+                OnTurnEnd?.Invoke();
+            }
+        }
         private void RemoveUnit(PlayerUnit unit)
         {
             if(!_killedUnits.Contains(unit)) _killedUnits.Add(unit);
@@ -68,24 +88,65 @@ namespace Rot
                 if (_allUnits.Contains(unit)) _allUnits.Remove(unit);
             _killedUnits.Clear();
         }
-        private async Task StartUnitAct(PlayerUnit unit, bool auto = false)
-        {
-            _currentAct = unit;
-            _selectedUnitUI.SetSelectedUnit(_currentAct);
-            await _currentAct.Act(auto);
-        }
-        private async Task TryFinishTurn()
-        {
-            List<PlayerUnit> remainingUnits = new(_allUnits.Where(u => !u.FinishedActions));
-            
-            _canFinishTurn = remainingUnits == null || remainingUnits.Count == 0;
-            if (_canFinishTurn) return;
+        private void ChangeSelectedUnit(PlayerUnit unit) => _turnController.SetNext(unit);
+    }
 
-            foreach(var unit in remainingUnits) await StartUnitAct(unit, true);
+    internal class TurnController
+    {
+        private List<PlayerUnit> _requiredTurn;
+        private List<PlayerUnit> _autoTurn;
 
-            remainingUnits = new(_allUnits.Where(u => !u.FinishedActions));
-            _canFinishTurn = remainingUnits == null || remainingUnits.Count == 0;
+        private PlayerUnit _currentTurn;
+
+        public Action OnReadyToFinishTurn;
+        public Action OnFinishTurn;
+
+        internal TurnController()
+        {
+            _requiredTurn = new();
+            _autoTurn = new();
         }
-        private void ChangeSelectedUnit(PlayerUnit unit) { }
+
+        public void Setup(List<PlayerUnit> allUnits)
+        {
+            _requiredTurn.Clear();
+            _autoTurn.Clear();
+
+            foreach (var unit in allUnits)
+            {
+                unit.InitAction();
+                if (unit.HasTask) _autoTurn.Add(unit);
+                else _requiredTurn.Add(unit);
+            }
+        }
+
+        public PlayerUnit GetNextTurn()
+        {
+            if (_currentTurn != null && !_currentTurn.FinishedActions) _requiredTurn.Add(_currentTurn);
+
+            _currentTurn = null;
+
+            if (_requiredTurn.Count > 0)
+            {
+                _currentTurn = _requiredTurn[0];
+                _requiredTurn.RemoveAt(0);
+                if (_requiredTurn.Count == 0) OnReadyToFinishTurn?.Invoke();
+            }
+            else if (_autoTurn.Count > 0)
+            {
+                _currentTurn = _autoTurn[0];
+                _autoTurn.RemoveAt(0);
+            }
+
+            return _currentTurn;
+        }
+
+        public void SetNext(PlayerUnit unit)
+        {
+            if (_requiredTurn.Contains(unit)) _requiredTurn.Remove(unit);
+            if (_autoTurn.Contains(unit)) _autoTurn.Remove(unit);
+
+            _requiredTurn.Insert(0, unit);
+        }
     }
 }

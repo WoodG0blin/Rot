@@ -10,6 +10,7 @@ namespace Rot
         Action<Vector3> OnClick { set; }
         Action<Vector3> OnDrag { set; }
         Action<float> OnScroll { set; }
+        Action OnExit { set; }
     }
 
     public class InputManager : MonoBehaviour, IInput
@@ -18,6 +19,7 @@ namespace Rot
         public Action<Vector3> OnClick { get; set; }
         public Action<Vector3> OnDrag { get; set; }
         public Action<float> OnScroll { get; set; }
+        public Action OnExit { get; set; }
 
         private bool _mouseLeftPressed;
         private Vector3 _previousMousePosition;
@@ -25,6 +27,8 @@ namespace Rot
 
         void Update()
         {
+            if(Input.GetKey(KeyCode.Escape)) OnExit?.Invoke();
+
             if(Mathf.Abs(Input.mouseScrollDelta.y) > 0.01f) OnScroll?.Invoke(-Input.mouseScrollDelta.y);
 
             if (_mouseLeftPressed)

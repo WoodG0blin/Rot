@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ namespace Rot
 {
     public class PlayerUnit : BaseUnit
     {
+        public Func<List<ICommand>, Task<ICommand>> RequestCommand;
+
         public PlayerUnit(UnitView view, Vector2Int initialPosition, int maxDefence, int speed)
             : base(view, initialPosition, true, maxDefence, speed)
         {
@@ -36,17 +39,7 @@ namespace Rot
         }
         protected override async Task<ICommand> SelectCommand(List<ICommand> availableCommands)
         {
-            return availableCommands[0];
-        }
-        protected override async Task<Stack<IPathInfo>> RequestPath()
-        {
-            await Task.Delay(500);
-            return PathFinder.GetPath(modelPosition, new Vector2Int(0, 0));
-        }
-        protected override async Task<IDamagable> RequestTarget()
-        {
-            await Task.Delay(500);
-            return null;
+            return await RequestCommand?.Invoke(availableCommands);
         }
     }
 }

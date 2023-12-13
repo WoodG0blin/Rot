@@ -4,32 +4,32 @@ using UnityEngine;
 
 public class AwaitableView : MonoBehaviour
 {
-    protected ClickAwaiter clickAwaiter;
-    public class ClickAwaiter : INotifyCompletion
+    protected Awaiter currentAwaiter;
+    public class Awaiter : INotifyCompletion
     {
         private bool _isCompleted;
         private Action _continuation;
-        private bool _attack;
+        private bool _success;
         public bool IsCompleted => _isCompleted;
         public void OnCompleted(Action continuation)
         {
             if (IsCompleted) continuation?.Invoke();
             else _continuation = continuation;
         }
-        public bool GetResult() => _attack;
+        public bool GetResult() => _success;
         public void Finish(bool attack = true)
         {
-            _attack = attack;
+            _success = attack;
             _isCompleted = true;
             _continuation?.Invoke();
             _continuation = null;
         }
     }
-    public ClickAwaiter GetAwaiter()
+    public Awaiter GetAwaiter()
     {
-        clickAwaiter = new ClickAwaiter();
+        currentAwaiter = new Awaiter();
         OnStartAwait();
-        return clickAwaiter;
+        return currentAwaiter;
     }
     protected virtual void OnStartAwait() { }
 }

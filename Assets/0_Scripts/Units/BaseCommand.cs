@@ -7,30 +7,33 @@ using UnityEngine;
 
 namespace Rot
 {
-    internal abstract class BaseCommand : ICommand
+    public abstract class BaseCommand : ICommand
     {
+        public enum AdditionalInput { None, Position, Target}
+
+        public BaseCommand(string name) => Name = name;
+
         public bool IsFinished { get; private set; }
         public abstract Task<int> Execute(int availableSpeed);
-
         public virtual void Finish() => IsFinished = true;
+
+        public Sprite Icon { get; protected set; }
+        public string Name { get;  protected set; }
+        public AdditionalInput ExtraInput { get; protected set; }
+        public virtual void SetTarget(IDamagable target) { }
+        public virtual void SetTargetPosition(Vector2Int position) { }
     }
 
     internal class AttackCommand : BaseCommand
     {
         private Skill _skill;
-        private Func<Task<IDamagable>> _requestTarget;
         private IDamagable _target;
 
-        public AttackCommand(Skill skill, Func<Task<IDamagable>> requestTarget)
-        {
-            _skill = skill;
-            _requestTarget = requestTarget;
-        }
+        public AttackCommand(Skill skill) : base("Attack") => _skill = skill;
+
         public override async Task<int> Execute(int availableSpeed)
         {
             int remainingSpeed = availableSpeed;
-
-            _target = await _requestTarget();
 
             if (_target != null && _skill.Cost <= availableSpeed)
             {
@@ -41,23 +44,24 @@ namespace Rot
             Finish();
             return remainingSpeed;
         }
+        public override void SetTarget(IDamagable target) => _target = target;
     }
 
     internal class MoveCommand : BaseCommand
     {
         private UnitView _view;
-        private Func<Task<Stack<IPathInfo>>> _requestPath;
+        private Vector2Int _currentPosition;
         private Stack<IPathInfo> _path;
-        public MoveCommand(UnitView view, Func<Task<Stack<IPathInfo>>> requestPath)
+
+        public MoveCommand(UnitView view, Vector2Int _currentposition) : base("Move")
         {
             _view = view;
-            _requestPath = requestPath;
+            _currentPosition = _currentposition;
         }
+
         public override async Task<int> Execute(int availableSpeed)
         {
             int remainingSpeed = availableSpeed;
-
-            _path ??= await _requestPath();
 
             if (_path == null) Finish();
             else
@@ -73,15 +77,15 @@ namespace Rot
             }
             return remainingSpeed;
         }
+        public override void SetTargetPosition(Vector2Int position) =>
+            _path = PathFinder.GetPath(_currentPosition, position);
     }
 
     internal class DefendCommand : BaseCommand
     {
         private Func<Task> _requestHeal;
-        public DefendCommand(Func<Task> requestHeal)
-        {
+        public DefendCommand(Func<Task> requestHeal) : base("Defence") => 
             _requestHeal = requestHeal;
-        }
 
         public override async Task<int> Execute(int availableSpeed)
         {
@@ -96,7 +100,7 @@ namespace Rot
         private IReceivingInfluence _target;
         private int _influence;
 
-        public InfluenceCommand(IReceivingInfluence target, int influence)
+        public InfluenceCommand(IReceivingInfluence target, int influence) : base("Influence")
         {
             _target = target;
             _influence = influence;
@@ -116,7 +120,7 @@ namespace Rot
         private int _counter;
         private bool _buildComplete = false;
 
-        public BuildCommand(IBuildable build)
+        public BuildCommand(IBuildable build) : base("Build")
         {
             _build = build;
             _counter = _build.RequestBuildRequirements();
@@ -146,7 +150,7 @@ namespace Rot
         private int _counter;
         private Func<Task> _requestUpgrade;
 
-        public UpgradeCommand(Func<Task> requestUpgrade)
+        public UpgradeCommand(Func<Task> requestUpgrade) : base("Upgrade")
         {
             _requestUpgrade = requestUpgrade;
         }
