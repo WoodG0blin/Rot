@@ -66,23 +66,14 @@ namespace Rot
 
         private async void SetNextTurn()
         {
-            //if (_canFinishTurn)
-            //{
-            //    Debug.Log("Trying to finish turn");
-            //    _autoMode = await _UImanager.FinishTurnClick();
-            //    Debug.Log($"automode {_autoMode}");
-            //    _canFinishTurn = false;
-            //}
+            if (_turnController.ReadyToFinish && !_autoMode)
+                _autoMode = await _UImanager.FinishTurnClick();
 
             _currentAct = _turnController.GetNextTurn();
 
-            if (_currentAct != null)
-            {
-                _currentAct.Act(_autoMode);
-            }
+            if (_currentAct != null) _currentAct.Act(_autoMode);
             else
             {
-                //await _UImanager.FinishTurnClick();
                 OnTurnEnd?.Invoke();
                 Debug.Log("Finish turn");
             }
@@ -107,6 +98,8 @@ namespace Rot
 
         private PlayerUnit _currentTurn;
 
+        public bool ReadyToFinish { get; private set; }
+
         public Action OnReadyToFinishTurn;
         public Action OnFinishTurn;
 
@@ -127,6 +120,7 @@ namespace Rot
                 if (unit.HasTask) _autoTurn.Add(unit);
                 else _requiredTurn.Add(unit);
             }
+            ReadyToFinish = _requiredTurn.Count == 0;
         }
 
         public PlayerUnit GetNextTurn()
@@ -142,16 +136,18 @@ namespace Rot
             {
                 _currentTurn = _requiredTurn[0];
                 _requiredTurn.RemoveAt(0);
-                if (_requiredTurn.Count == 0)
-                {
-                    OnReadyToFinishTurn?.Invoke();
-                }
+                //if (_requiredTurn.Count == 0)
+                //{
+                //    OnReadyToFinishTurn?.Invoke();
+                //}
             }
             else if (_autoTurn.Count > 0)
             {
                 _currentTurn = _autoTurn[0];
                 _autoTurn.RemoveAt(0);
             }
+
+            ReadyToFinish = _requiredTurn.Count == 0;
             return _currentTurn;
         }
 

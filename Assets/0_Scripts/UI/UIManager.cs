@@ -24,8 +24,11 @@ namespace Rot
         }
         public async Task<bool> FinishTurnClick()
         {
+            _nextTurnButton.image.color = Color.red;
             bool result = await this;
             currentAwaiter = null;
+            _nextTurnButton.image.color = Color.grey;
+
             return result;
         }
 
