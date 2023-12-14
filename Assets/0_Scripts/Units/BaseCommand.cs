@@ -29,7 +29,11 @@ namespace Rot
         private Skill _skill;
         private IDamagable _target;
 
-        public AttackCommand(Skill skill) : base("Attack") => _skill = skill;
+        public AttackCommand(Skill skill) : base("Attack")
+        {
+            ExtraInput = AdditionalInput.Target;
+            _skill = skill;
+        }
 
         public override async Task<int> Execute(int availableSpeed)
         {
@@ -51,34 +55,45 @@ namespace Rot
     {
         private UnitView _view;
         private Vector2Int _currentPosition;
+        private int _maxSpeed;
         private Stack<IPathInfo> _path;
 
-        public MoveCommand(UnitView view, Vector2Int _currentposition) : base("Move")
+        public MoveCommand(UnitView view, Vector2Int _currentposition, int maxSpeed) : base("Move")
         {
             _view = view;
             _currentPosition = _currentposition;
+            _maxSpeed = maxSpeed;
+            ExtraInput = AdditionalInput.Position;
         }
 
         public override async Task<int> Execute(int availableSpeed)
         {
             int remainingSpeed = availableSpeed;
 
-            if (_path == null) Finish();
+            if (_path == null || _path.Count == 0) Finish();
             else
             {
-                if(_path.Peek().Cost <= remainingSpeed)
+                if (_path.Peek().Cost <= remainingSpeed)
                 {
                     var nextStep = _path.Pop();
+                    if (_path.Count == 0) Finish();
                     await _view.MoveTo(nextStep.ModelPosition);
                     remainingSpeed -= nextStep.Cost;
                 }
-
-                if(_path.Count == 0) Finish();
+                else if (_path.Peek().Cost > _maxSpeed)
+                {
+                    Debug.Log("Cannot follow path");
+                    Finish();
+                }
+                else remainingSpeed = 0;
             }
             return remainingSpeed;
         }
-        public override void SetTargetPosition(Vector2Int position) =>
-            _path = PathFinder.GetPath(_currentPosition, position);
+        public override void SetTargetPosition(Vector2Int position)
+        {
+            _path = PathFinder.GetPath(_currentPosition, position, _maxSpeed);
+            if(_path != null) _view.DrawPath(new Stack<IPathInfo>(_path));
+        }
     }
 
     internal class DefendCommand : BaseCommand
@@ -89,7 +104,7 @@ namespace Rot
 
         public override async Task<int> Execute(int availableSpeed)
         {
-            await _requestHeal?.Invoke();
+            //await _requestHeal?.Invoke();
             Finish();
             return 0;
         }

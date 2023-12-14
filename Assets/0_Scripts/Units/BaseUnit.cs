@@ -47,6 +47,8 @@ namespace Rot
         public bool HasTask => currentCommand != null;
         public bool FinishedActions { get; private set; }
 
+        public string Name { get; protected set; }
+        public Sprite Icon { get; protected set; }
 
         internal Action OnTurnEnd { get; set; }
         internal Action OnDeath { get; set; }
@@ -58,6 +60,7 @@ namespace Rot
             unitView= view;
             modelPosition = initialPosition;
             view.SetInitialPosition(modelPosition);
+            view.OnPositionChange = v => modelPosition = v;
             
             if(alive)
             {
@@ -75,6 +78,8 @@ namespace Rot
             _maxDefence = maxDefence;
             Defence = _maxDefence;
             _speed = speed;
+
+            skills = new();
         }
 
 
@@ -88,6 +93,8 @@ namespace Rot
 
             int remainingSpeed = _speed;
 
+            Debug.Log($"Starting act of {Name}");
+
             while(remainingSpeed > 0)
             {
                 if (_needInput) currentCommand = await RequestInput();
@@ -97,10 +104,9 @@ namespace Rot
                     return;
                 }
 
-                remainingSpeed -= await currentCommand.Execute(remainingSpeed);
+                remainingSpeed = await currentCommand.Execute(remainingSpeed);
                 CheckCurrentCommand(ref _needInput);
             }
-
             FinishedActions = true;
             OnTurnEnd?.Invoke();
         }
@@ -109,7 +115,7 @@ namespace Rot
         {
             List<ICommand> availableCommands = new();
 
-            availableCommands.Add(new MoveCommand(unitView, modelPosition));
+            availableCommands.Add(new MoveCommand(unitView, modelPosition, _speed));
 
             foreach (var skill in skills) availableCommands.Add(new AttackCommand(skill));
 
@@ -143,15 +149,19 @@ namespace Rot
 
         private void CheckCurrentCommand(ref bool needInput)
         {
-            if (HasTask && currentCommand.IsFinished)
-            {
-                currentCommand = null;
-                needInput = true;
-            }
+            if (HasTask)
+                if (currentCommand.IsFinished)
+                {
+                    currentCommand = null;
+                    needInput = true;
+                }
+                else needInput = false;
+            else needInput = true;
         }
         private async Task RequestHeal() => ReceiveDamage(-BaseValues.BaseVitality / 2);
         private void Die()
         {
+            unitView.transform.SetParent(null);
             GameObject.Destroy(unitView.gameObject);
             OnDeath?.Invoke();
         }

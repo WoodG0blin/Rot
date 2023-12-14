@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Rot
 {
@@ -55,7 +56,9 @@ namespace Rot
 
         private void ProcessClick(Vector3 mousePosition)
         {
-            if(_pressedTimer <= _clickDuration) OnClick?.Invoke(mousePosition);
+            if(_pressedTimer <= _clickDuration)
+                if(!EventSystem.current.IsPointerOverGameObject())
+                    OnClick?.Invoke(mousePosition);
         }
 
         private void ProcessDrag(Vector3 startDrag, Vector3 finishDrag)

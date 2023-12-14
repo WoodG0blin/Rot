@@ -11,7 +11,6 @@ namespace Rot
         [SerializeField] private InputManager _inputManager;
         [SerializeField] private CameraView _cameraView;
         [SerializeField] private UIManager _UImanager;
-        [SerializeField] private GameObject _unitPrefab;
 
         private MapModel _model;
         private PlayerManager _playerManager;
@@ -23,7 +22,7 @@ namespace Rot
         {
             _model = new(_config);
 
-            _playerManager = new(_UImanager, _unitPrefab, _model);
+            _playerManager = new(_UImanager, _model, _mapView);
             _playerManager.OnTurnEnd = SetNextTurn;
 
             _mapView.Init(_config.GetBaseMaterial);

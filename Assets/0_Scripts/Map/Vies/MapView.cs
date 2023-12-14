@@ -10,6 +10,9 @@ namespace Rot
     internal class MapView : MonoBehaviour
     {
         [SerializeField] Transform tilePrefab;
+        [SerializeField] Transform _tileParent;
+        [SerializeField] GameObject _unitPrefab;
+        [SerializeField] Transform _unitsParent;
 
         private Vector2[] _baseVectors;
         private Vector2[] _inversedBaseVectors;
@@ -35,7 +38,7 @@ namespace Rot
 
             foreach (Tile tile in tiles)
             {
-                var t = Instantiate(tilePrefab, transform).GetComponent<TileView>();
+                var t = Instantiate(tilePrefab, _tileParent).GetComponent<TileView>();
                 t.Init(MapToWorldCoordinates(tile.ModelPosition), _getMaterial?.Invoke(tile.Type));
                 t.UpdateTile(tile.IsAlive, tile.Vitality, tile.HasLocation, tile.HasLocation ? tile.Location.Vitality : 0);
                 _drawnTiles.Add(tile.ModelPosition, t);
@@ -60,6 +63,13 @@ namespace Rot
                 OnTileClick?.Invoke(modelCoordinates);
             }
         }
+        internal UnitView InitiateUnitView()
+        {
+            UnitView view = GameObject.Instantiate(_unitPrefab, _unitsParent).GetComponent<UnitView>();
+            view.ToWorldCoordinates = MapToWorldCoordinates;
+            view.OnDrawPath = DrawPath;
+            return view;
+        }
 
         internal async void DrawAdjoining(List<Tile> tiles)
         {
@@ -67,13 +77,15 @@ namespace Rot
                 _drawnTiles[t.ModelPosition].SetSelection(true);
         }
 
-        internal async void DrawPath(Stack<Vector2Int> path)
+        internal void DrawPath(Stack<IPathInfo> path)
         {
+            foreach(var t in _drawnTiles.Values) t.SetSelection(false);
+            if (path == null) return;
+
             while (path.Count > 0)
             {
                 var t = path.Pop();
-                if (_drawnTiles.ContainsKey(t)) _drawnTiles[t].SetSelection(true);
-                await Task.Delay(100);
+                if (_drawnTiles.ContainsKey(t.ModelPosition)) _drawnTiles[t.ModelPosition].SetSelection(true);
             }
         }
 
@@ -86,9 +98,9 @@ namespace Rot
 
         private void Clear()
         {
-            for(int i = transform.childCount - 1; i >=0; i--)
+            for(int i = _tileParent.childCount - 1; i >=0; i--)
             {
-                var tr = transform.GetChild(i);
+                var tr = _tileParent.GetChild(i);
                 tr.SetParent(null);
                 GameObject.Destroy(tr.gameObject);
             }

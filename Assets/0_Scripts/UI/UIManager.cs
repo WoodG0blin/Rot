@@ -24,9 +24,9 @@ namespace Rot
         }
         public async Task<bool> FinishTurnClick()
         {
-            await this;
+            bool result = await this;
             currentAwaiter = null;
-            return true;
+            return result;
         }
 
 

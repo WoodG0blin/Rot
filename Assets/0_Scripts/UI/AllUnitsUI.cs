@@ -8,30 +8,34 @@ namespace Rot
 {
     public class AllUnitsUI : MonoBehaviour
     {
-        [SerializeField] private Button _unitButton;
-
-        private List<PlayerUnit> _displayedUnits;
+        [SerializeField] private GameObject _unitButtonPrefab;
 
         public Action<PlayerUnit> OnUnitSelection;
 
 
-        private void Awake()
-        {
-            _unitButton.onClick.AddListener(OnUnitClick);
-        }
         public void DisplayUnits(List<PlayerUnit> units)
         {
-            _displayedUnits = new(units);
+            Clear();
+
+            foreach(var unit in units)
+            {
+                var b = Instantiate(_unitButtonPrefab, transform).GetComponent<UnitPanelUI>();
+                b.SetUnit(unit.Name, unit.Icon);
+                b.OnClick = () => OnUnitSelection?.Invoke(unit);
+            }
         }
 
 
-        private void OnUnitClick()
+        private void Clear()
         {
-            OnUnitSelection?.Invoke(_displayedUnits[0]);
-        }
-        private void OnDestroy()
-        {
-            _unitButton.onClick.RemoveAllListeners();
+            int children = transform.childCount;
+            if (children == 0) return;
+            for(int i = children; i >0; i--)
+            {
+                var c = transform.GetChild(i-1);
+                c.SetParent(null);
+                GameObject.Destroy(c.gameObject);
+            }
         }
     }
 }

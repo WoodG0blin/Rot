@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Rot
@@ -26,7 +27,7 @@ namespace Rot
             _currentModel = mapModel;
         }
 
-        internal static Stack<IPathInfo> GetPath(Vector2Int startPosition, Vector2Int finishPosition)
+        internal static Stack<IPathInfo> GetPath(Vector2Int startPosition, Vector2Int finishPosition, int maxCost = 1000)
         {
             List<IPathFinderTile> _tilesToCheck = new();
             List<IPathFinderTile> _visited = new();
@@ -56,17 +57,17 @@ namespace Rot
                         _tilesToCheck.Add(newTile);
                     }
 
-                    TrySetNewPath(current, newTile, finishTile);
+                    TrySetNewPath(current, newTile, finishTile, maxCost);
                 }
             }
 
-            return SetPath(startTile, finishTile);
+            return SetPath(startTile, finishTile, maxCost);
         }
 
 
-        private static void TrySetNewPath(IPathFinderTile current, IPathFinderTile next, IPathFinderTile target)
+        private static void TrySetNewPath(IPathFinderTile current, IPathFinderTile next, IPathFinderTile target, int maxCost)
         {
-            int currentEstimate = current.CostSoFar + next.Cost + GetEuristic(next, target);
+            int currentEstimate = current.CostSoFar + AdjustToLimit(next.Cost, maxCost) + GetEuristic(next, target);
             
             if(next.NewPath || currentEstimate < next.PathCostEstimate)
             {
@@ -77,15 +78,29 @@ namespace Rot
             }
         }
 
-        private static Stack<IPathInfo> SetPath(IPathFinderTile start, IPathFinderTile finish)
+        private static int AdjustToLimit(int cost, int maxCost) =>
+            cost < maxCost ? cost : 1000;
+
+        private static Stack<IPathInfo> SetPath(IPathFinderTile start, IPathFinderTile finish, int maxCost)
         {
-            Stack<IPathInfo> path = new();
+            Stack<IPathInfo> rawPath = new();
             IPathFinderTile next = finish;
             while(next.ModelPosition != start.ModelPosition)
             {
-                path.Push(next);
+                rawPath.Push(next);
                 next = next.Previous;
             }
+
+            List<IPathInfo> temp = new();
+            while(rawPath.Count > 0)
+            {
+                var t = rawPath.Pop();
+                if (t.Cost <= maxCost) temp.Add(t);
+                else break;
+            }
+
+            Stack<IPathInfo> path = new();
+            for(int i = temp.Count-1; i >=0; i--) path.Push(temp[i]);
             return path;
         }
 

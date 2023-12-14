@@ -28,24 +28,24 @@ MonoBehaviour:
     _probability: 10
     _baseMaterial: {fileID: 2100000, guid: 56a7a6a558ade68429e11e410ac19beb, type: 2}
     _isPassable: 1
-    _passingCost: 5
+    _passingCost: 2
   - _type: 3
     _probability: 10
     _baseMaterial: {fileID: 2100000, guid: ddc11cc42db5726449e31f1feae6c4e4, type: 2}
     _isPassable: 1
-    _passingCost: 5
+    _passingCost: 2
   - _type: 4
     _probability: 20
     _baseMaterial: {fileID: 2100000, guid: 5529391215170434ab7b507f42643e73, type: 2}
     _isPassable: 1
-    _passingCost: 10
+    _passingCost: 3
   - _type: 5
     _probability: 10
     _baseMaterial: {fileID: 2100000, guid: 18f74e12ad1a97e4e9768fc5f953f731, type: 2}
     _isPassable: 0
-    _passingCost: 10
+    _passingCost: 3
   - _type: 6
     _probability: 10
     _baseMaterial: {fileID: 2100000, guid: aecc1b5c575404f4c8ff010a6a36f5ab, type: 2}
     _isPassable: 0
-    _passingCost: 10
+    _passingCost: 4

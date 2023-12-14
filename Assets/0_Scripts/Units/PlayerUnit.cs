@@ -10,9 +10,10 @@ namespace Rot
     {
         public Func<List<ICommand>, Task<ICommand>> RequestCommand;
 
-        public PlayerUnit(UnitView view, Vector2Int initialPosition, int maxDefence, int speed)
+        public PlayerUnit(UnitView view, Vector2Int initialPosition, int maxDefence, int speed, string name)
             : base(view, initialPosition, true, maxDefence, speed)
         {
+            Name = name;
         }
 
         public override void ReceiveDamage(int damage)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TMPro.EditorUtilities;
 using UnityEngine;
 
 namespace Rot
@@ -11,7 +12,7 @@ namespace Rot
     {
         private UIManager _UImanager;
 
-        private GameObject _unitPrefab;
+        private MapView _mapView;
         private MapModel _mapModel;
 
         private List<PlayerUnit> _allUnits;
@@ -25,7 +26,7 @@ namespace Rot
         public Action OnTurnEnd;
 
 
-        public PlayerManager(UIManager UImanager, GameObject unitPrefab, MapModel model)
+        public PlayerManager(UIManager UImanager, MapModel model, MapView mapView)
         {
             _UImanager = UImanager;
             _UImanager.OnUnitSelection = ChangeSelectedUnit;
@@ -33,7 +34,7 @@ namespace Rot
             _turnController = new();
             _turnController.OnReadyToFinishTurn = () => _canFinishTurn = true;
 
-            _unitPrefab = unitPrefab;
+            _mapView = mapView;
             _mapModel = model;
             _allUnits = new();
             _killedUnits = new();
@@ -42,6 +43,7 @@ namespace Rot
         public void Act()
         {
             ClearKilled();
+            _UImanager.SetUnitsList(_allUnits);
             _canFinishTurn = false;
             _autoMode = false;
 
@@ -53,8 +55,9 @@ namespace Rot
 
         public void AddUnit(Vector2Int position)
         {
-            UnitView view = GameObject.Instantiate(_unitPrefab).GetComponent<UnitView>();
-            PlayerUnit newUnit = new(view, position, BaseValues.BaseVitality, 2);
+            if (_allUnits.Count == 2) return;
+            PlayerUnit newUnit = new(_mapView.InitiateUnitView(), position, BaseValues.BaseVitality, 3, $"PlayerUnit{_allUnits.Count}");
+            newUnit.OnTurnEnd = SetNextTurn;
             newUnit.RequestCommand = async c => await _UImanager.GetCommand(newUnit, c);
             newUnit.GetTile = p => _mapModel[p.x, p.y];
             newUnit.OnDeath = () => RemoveUnit(newUnit);
@@ -63,19 +66,25 @@ namespace Rot
 
         private async void SetNextTurn()
         {
-            if (_canFinishTurn)
-            {
-                _autoMode = await _UImanager.FinishTurnClick();
-                _canFinishTurn = false;
-            }
+            //if (_canFinishTurn)
+            //{
+            //    Debug.Log("Trying to finish turn");
+            //    _autoMode = await _UImanager.FinishTurnClick();
+            //    Debug.Log($"automode {_autoMode}");
+            //    _canFinishTurn = false;
+            //}
 
             _currentAct = _turnController.GetNextTurn();
 
-            if (_currentAct != null) _currentAct.Act(_autoMode);
+            if (_currentAct != null)
+            {
+                _currentAct.Act(_autoMode);
+            }
             else
             {
-                await _UImanager.FinishTurnClick();
+                //await _UImanager.FinishTurnClick();
                 OnTurnEnd?.Invoke();
+                Debug.Log("Finish turn");
             }
         }
         private void RemoveUnit(PlayerUnit unit)
@@ -122,7 +131,10 @@ namespace Rot
 
         public PlayerUnit GetNextTurn()
         {
-            if (_currentTurn != null && !_currentTurn.FinishedActions) _requiredTurn.Add(_currentTurn);
+            if (_currentTurn != null && !_currentTurn.FinishedActions)
+            {
+                _requiredTurn.Add(_currentTurn);
+            }
 
             _currentTurn = null;
 
@@ -130,14 +142,16 @@ namespace Rot
             {
                 _currentTurn = _requiredTurn[0];
                 _requiredTurn.RemoveAt(0);
-                if (_requiredTurn.Count == 0) OnReadyToFinishTurn?.Invoke();
+                if (_requiredTurn.Count == 0)
+                {
+                    OnReadyToFinishTurn?.Invoke();
+                }
             }
             else if (_autoTurn.Count > 0)
             {
                 _currentTurn = _autoTurn[0];
                 _autoTurn.RemoveAt(0);
             }
-
             return _currentTurn;
         }
 
