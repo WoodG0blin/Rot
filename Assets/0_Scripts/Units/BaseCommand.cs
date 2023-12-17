@@ -1,27 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 namespace Rot
 {
     public abstract class BaseCommand : ICommand
     {
-        public enum AdditionalInput { None, Position, Target}
+        public enum AdditionalInput { None, Position, Target, Tile}
 
-        public BaseCommand(string name) => Name = name;
+        public BaseCommand(string name)
+        {
+            Name = name;
+            IsFinished = false;
+        }
 
         public bool IsFinished { get; private set; }
         public abstract Task<int> Execute(int availableSpeed);
-        public virtual void Finish() => IsFinished = true;
+        public virtual void Finish()
+        {
+            IsFinished = true;
+            Debug.Log($"Finishing command {Name}");
+        }
 
         public Sprite Icon { get; protected set; }
         public string Name { get;  protected set; }
         public AdditionalInput ExtraInput { get; protected set; }
         public virtual void SetTarget(IDamagable target) { }
-        public virtual void SetTargetPosition(Vector2Int position) { }
+        public virtual void SetPath(Path path) { }
+        public virtual void SetTile(Tile targetTile) { }
     }
 
     internal class AttackCommand : BaseCommand
@@ -54,15 +62,14 @@ namespace Rot
     internal class MoveCommand : BaseCommand
     {
         private UnitView _view;
-        private Vector2Int _currentPosition;
-        private int _maxSpeed;
-        private Stack<IPathInfo> _path;
 
-        public MoveCommand(UnitView view, Vector2Int _currentposition, int maxSpeed) : base("Move")
+        public Path Path { get; private set; }
+        public int MaxSpeed { get; private set; }
+
+        public MoveCommand(UnitView view, int maxSpeed) : base("Move")
         {
             _view = view;
-            _currentPosition = _currentposition;
-            _maxSpeed = maxSpeed;
+            MaxSpeed = maxSpeed;
             ExtraInput = AdditionalInput.Position;
         }
 
@@ -70,17 +77,16 @@ namespace Rot
         {
             int remainingSpeed = availableSpeed;
 
-            if (_path == null || _path.Count == 0) Finish();
+            if (Path == null || Path.IsFinished) Finish();
             else
             {
-                if (_path.Peek().Cost <= remainingSpeed)
+                if (Path.NextStepCost <= remainingSpeed)
                 {
-                    var nextStep = _path.Pop();
-                    if (_path.Count == 0) Finish();
-                    await _view.MoveTo(nextStep.ModelPosition);
-                    remainingSpeed -= nextStep.Cost;
+                    remainingSpeed -= Path.NextStepCost;
+                    await _view.MoveTo(Path.GetNextStep());
+                    if (Path.IsFinished) Finish();
                 }
-                else if (_path.Peek().Cost > _maxSpeed)
+                else if (Path.NextStepCost > MaxSpeed)
                 {
                     Debug.Log("Cannot follow path");
                     Finish();
@@ -89,11 +95,7 @@ namespace Rot
             }
             return remainingSpeed;
         }
-        public override void SetTargetPosition(Vector2Int position)
-        {
-            _path = PathFinder.GetPath(_currentPosition, position, _maxSpeed);
-            if(_path != null) _view.DrawPath(new Stack<IPathInfo>(_path));
-        }
+        public override void SetPath(Path path) => Path = path;
     }
 
     internal class DefendCommand : BaseCommand
@@ -115,10 +117,10 @@ namespace Rot
         private IReceivingInfluence _target;
         private int _influence;
 
-        public InfluenceCommand(IReceivingInfluence target, int influence) : base("Influence")
+        public InfluenceCommand(int influence) : base("Influence")
         {
-            _target = target;
             _influence = influence;
+            ExtraInput = AdditionalInput.Tile;
         }
 
         public override async Task<int> Execute(int availableSpeed)
@@ -127,6 +129,8 @@ namespace Rot
             Finish();
             return 0;
         }
+
+        public override void SetTile(Tile targetTile) => _target = targetTile;
     }
 
     internal class BuildCommand : BaseCommand
@@ -135,10 +139,9 @@ namespace Rot
         private int _counter;
         private bool _buildComplete = false;
 
-        public BuildCommand(IBuildable build) : base("Build")
+        public BuildCommand() : base("Build")
         {
-            _build = build;
-            _counter = _build.RequestBuildRequirements();
+            ExtraInput = AdditionalInput.Tile;
         }
 
         public override async Task<int> Execute(int availableSpeed)
@@ -151,6 +154,12 @@ namespace Rot
                 Finish();
             }
             return 0;
+        }
+
+        public override void SetTile(Tile targetTile)
+        {
+            _build = targetTile;
+            _counter = _build.RequestBuildRequirements();
         }
 
         public override void Finish()

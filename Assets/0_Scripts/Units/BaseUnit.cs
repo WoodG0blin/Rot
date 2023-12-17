@@ -10,7 +10,6 @@ namespace Rot
 {
     public abstract class BaseUnit : IReceivingInfluence, IDamagable
     {
-        private bool _abortAct;
 
         private int _vitality;
         private int _minVitality;
@@ -25,6 +24,7 @@ namespace Rot
         protected Vector2Int modelPosition;
         protected UnitView unitView;
         protected List<Skill> skills;
+        protected bool abortAct;
 
         protected ICommand currentCommand;
 
@@ -49,10 +49,10 @@ namespace Rot
 
         public string Name { get; protected set; }
         public Sprite Icon { get; protected set; }
+        public Vector2Int ModelPosition => modelPosition;
 
         internal Action OnTurnEnd { get; set; }
         internal Action OnDeath { get; set; }
-        internal Func<Vector2Int, Tile> GetTile { get; set; }
 
 
         public BaseUnit(UnitView view, Vector2Int initialPosition, bool alive, int maxDefence, int speed)
@@ -88,7 +88,7 @@ namespace Rot
         public void InitAction() => FinishedActions = false;
         public async void Act(bool auto = false)
         {
-            _abortAct = false;
+            abortAct = false;
             bool _needInput = auto ? !HasTask : true;
 
             int remainingSpeed = _speed;
@@ -98,7 +98,7 @@ namespace Rot
             while(remainingSpeed > 0)
             {
                 if (_needInput) currentCommand = await RequestInput();
-                if (currentCommand == null)
+                if (abortAct)
                 {
                     OnTurnEnd?.Invoke();
                     return;
@@ -115,17 +115,20 @@ namespace Rot
         {
             List<ICommand> availableCommands = new();
 
-            availableCommands.Add(new MoveCommand(unitView, modelPosition, _speed));
+            availableCommands.Add(new MoveCommand(unitView, _speed));
 
             foreach (var skill in skills) availableCommands.Add(new AttackCommand(skill));
 
             availableCommands.AddRange(InitiateSpecificCommands());
 
-            availableCommands.Add(new InfluenceCommand(GetTile(modelPosition), Vitality));
+            availableCommands.Add(new InfluenceCommand(Vitality));
 
             availableCommands.Add(new DefendCommand(RequestHeal));
 
-            return await SelectCommand(availableCommands);
+            if (HasTask && currentCommand is MoveCommand mc) unitView.DrawPath(mc.Path.PathCoordinates);
+            var res = await SelectCommand(availableCommands);
+            unitView.DrawPath(null);
+            return res;
         }
         protected abstract List<ICommand> InitiateSpecificCommands();
         protected abstract Task<ICommand> SelectCommand(List<ICommand> availableCommands);

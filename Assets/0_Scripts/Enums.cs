@@ -10,7 +10,7 @@ namespace Rot
         E
     }
 
-    internal enum TileTypes
+    public enum TileTypes
     {
         Border,
         Field,

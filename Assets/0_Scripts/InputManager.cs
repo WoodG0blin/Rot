@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,7 +15,7 @@ namespace Rot
         Action OnExit { set; }
     }
 
-    public class InputManager : MonoBehaviour, IInput
+    public class InputManager : AwaitableView, IInput
     {
         [SerializeField, Range(0.01f, 0.5f)] private float _clickDuration= 0.1f;
         public Action<Vector3> OnClick { get; set; }
@@ -25,6 +26,10 @@ namespace Rot
         private bool _mouseLeftPressed;
         private Vector3 _previousMousePosition;
         private float _pressedTimer;
+
+        private ClickInfo _currentClickInfo;
+
+        private bool _canAwaitLeftClick = false;
 
         void Update()
         {
@@ -49,16 +54,43 @@ namespace Rot
             if (Input.GetMouseButtonUp(0))
             {
                 _mouseLeftPressed = false;
-                ProcessClick(Input.mousePosition);
+                ProcessLeftClick(Input.mousePosition);
             }
 
+            if (Input.GetMouseButtonUp(1)) SetClickInfo(Input.mousePosition, false);
         }
 
-        private void ProcessClick(Vector3 mousePosition)
+
+        public async Task<ClickInfo> GetClick(Action cancellation)
         {
-            if(_pressedTimer <= _clickDuration)
-                if(!EventSystem.current.IsPointerOverGameObject())
+            _currentClickInfo = null;
+            cancellation += () => currentAwaiter?.Finish();
+
+            _canAwaitLeftClick = false;
+            await this;
+
+            cancellation -= () => currentAwaiter?.Finish();
+            return _currentClickInfo;
+        }
+
+        private void ProcessLeftClick(Vector3 mousePosition)
+        {
+            if (_pressedTimer <= _clickDuration)
+            {
+                if (!EventSystem.current.IsPointerOverGameObject())
+                {
+                    SetClickInfo(mousePosition, true);
                     OnClick?.Invoke(mousePosition);
+                }
+                if (_canAwaitLeftClick) currentAwaiter?.Finish(true);
+                else _canAwaitLeftClick = true;
+            }
+        }
+
+        private void SetClickInfo(Vector3 position, bool isLeft)
+        {
+            _currentClickInfo = new(isLeft, position);
+            currentAwaiter?.Finish();
         }
 
         private void ProcessDrag(Vector3 startDrag, Vector3 finishDrag)

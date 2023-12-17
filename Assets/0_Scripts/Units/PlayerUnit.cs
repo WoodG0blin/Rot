@@ -33,14 +33,19 @@ namespace Rot
         {
             List<ICommand> availableCommands = new();
 
-            if(GetTile(modelPosition).Buildable.IsBuildAvailable)
-                availableCommands.Add(new BuildCommand(GetTile(modelPosition).Buildable));
+            availableCommands.Add(new BuildCommand());
 
             return availableCommands;
         }
         protected override async Task<ICommand> SelectCommand(List<ICommand> availableCommands)
         {
-            return await RequestCommand?.Invoke(availableCommands);
+            var res = await RequestCommand?.Invoke(availableCommands);
+            if (res == null)
+            {
+                abortAct = true;
+                return currentCommand;
+            }
+            return res;
         }
     }
 }

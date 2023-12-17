@@ -2,7 +2,9 @@ using Rot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Rot
@@ -17,15 +19,17 @@ namespace Rot
         private Vector2[] _baseVectors;
         private Vector2[] _inversedBaseVectors;
         private Func<TileTypes, Material> _getMaterial;
+        private InputManager _inputManager;
 
         private Dictionary<Vector2Int, TileView> _drawnTiles;
         private bool _initiated = false;
 
-
+        internal Func<Action, Task<ClickInfo>> GetClick;
         internal Action<Vector2Int> OnTileClick;
 
-        internal void Init(Func<TileTypes, Material> getMaterial)
+        internal void Init(InputManager inputManager, Func<TileTypes, Material> getMaterial)
         {
+            _inputManager = inputManager;
             _getMaterial = getMaterial;
             Init();
         }
@@ -77,17 +81,21 @@ namespace Rot
                 _drawnTiles[t.ModelPosition].SetSelection(true);
         }
 
-        internal void DrawPath(Stack<IPathInfo> path)
+        internal void DrawPath(List<Vector2Int> path)
         {
             foreach(var t in _drawnTiles.Values) t.SetSelection(false);
             if (path == null) return;
 
-            while (path.Count > 0)
-            {
-                var t = path.Pop();
-                if (_drawnTiles.ContainsKey(t.ModelPosition)) _drawnTiles[t.ModelPosition].SetSelection(true);
-            }
+            for(int i = 0; i < path.Count; i++)
+                if (_drawnTiles.ContainsKey(path[i])) _drawnTiles[path[i]].SetSelection(true);
         }
+        internal async Task<ClickInfo> GetClickInfo(Action cancellation)
+        {
+            var info = await GetClick(cancellation);
+            if(info != null) info.MapCoordinates = WorldToMapCoordinates(info.WorldCoordinates);
+            return info;
+        }
+
 
         private void Init()
         {

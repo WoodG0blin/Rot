@@ -12,30 +12,24 @@ namespace Rot
     {
         private UIManager _UImanager;
 
-        private MapView _mapView;
-        private MapModel _mapModel;
-
         private List<PlayerUnit> _allUnits;
         private List<PlayerUnit> _killedUnits;
         
         private PlayerUnit _currentAct;
         private TurnController _turnController;
-        private bool _canFinishTurn;
         private bool _autoMode;
 
+        public Func<UnitView> GetPlayerUnitView;
         public Action OnTurnEnd;
 
 
-        public PlayerManager(UIManager UImanager, MapModel model, MapView mapView)
+        public PlayerManager(UIManager UImanager)
         {
             _UImanager = UImanager;
             _UImanager.OnUnitSelection = ChangeSelectedUnit;
 
             _turnController = new();
-            _turnController.OnReadyToFinishTurn = () => _canFinishTurn = true;
 
-            _mapView = mapView;
-            _mapModel = model;
             _allUnits = new();
             _killedUnits = new();
         }
@@ -44,7 +38,6 @@ namespace Rot
         {
             ClearKilled();
             _UImanager.SetUnitsList(_allUnits);
-            _canFinishTurn = false;
             _autoMode = false;
 
             _turnController.Setup(_allUnits);
@@ -56,10 +49,9 @@ namespace Rot
         public void AddUnit(Vector2Int position)
         {
             if (_allUnits.Count == 2) return;
-            PlayerUnit newUnit = new(_mapView.InitiateUnitView(), position, BaseValues.BaseVitality, 3, $"PlayerUnit{_allUnits.Count}");
+            PlayerUnit newUnit = new(GetPlayerUnitView(), position, BaseValues.BaseVitality, 3, $"PlayerUnit{_allUnits.Count}");
             newUnit.OnTurnEnd = SetNextTurn;
             newUnit.RequestCommand = async c => await _UImanager.GetCommand(newUnit, c);
-            newUnit.GetTile = p => _mapModel[p.x, p.y];
             newUnit.OnDeath = () => RemoveUnit(newUnit);
             _allUnits.Add(newUnit);
         }
@@ -127,7 +119,8 @@ namespace Rot
         {
             if (_currentTurn != null && !_currentTurn.FinishedActions)
             {
-                _requiredTurn.Add(_currentTurn);
+                if (_currentTurn.HasTask) _autoTurn.Add(_currentTurn);
+                else _requiredTurn.Add(_currentTurn);
             }
 
             _currentTurn = null;

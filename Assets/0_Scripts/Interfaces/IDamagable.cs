@@ -6,6 +6,7 @@ namespace Rot
 {
     public interface IDamagable
     {
+        string Name { get; }
         void ReceiveDamage(int damage);
     }
 }

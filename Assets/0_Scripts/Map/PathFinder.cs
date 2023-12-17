@@ -27,7 +27,7 @@ namespace Rot
             _currentModel = mapModel;
         }
 
-        internal static Stack<IPathInfo> GetPath(Vector2Int startPosition, Vector2Int finishPosition, int maxCost = 1000)
+        internal static Path GetPath(Vector2Int startPosition, Vector2Int finishPosition, int maxCost = 1000)
         {
             List<IPathFinderTile> _tilesToCheck = new();
             List<IPathFinderTile> _visited = new();
@@ -81,9 +81,11 @@ namespace Rot
         private static int AdjustToLimit(int cost, int maxCost) =>
             cost < maxCost ? cost : 1000;
 
-        private static Stack<IPathInfo> SetPath(IPathFinderTile start, IPathFinderTile finish, int maxCost)
+        private static Path SetPath(IPathFinderTile start, IPathFinderTile finish, int maxCost)
         {
             Stack<IPathInfo> rawPath = new();
+            Path path = new();
+
             IPathFinderTile next = finish;
             while(next.ModelPosition != start.ModelPosition)
             {
@@ -95,16 +97,54 @@ namespace Rot
             while(rawPath.Count > 0)
             {
                 var t = rawPath.Pop();
-                if (t.Cost <= maxCost) temp.Add(t);
+                if (t.Cost <= maxCost) path.AddStep(t);
                 else break;
             }
 
-            Stack<IPathInfo> path = new();
-            for(int i = temp.Count-1; i >=0; i--) path.Push(temp[i]);
             return path;
         }
 
         private static int GetEuristic(IPathFinderTile next, IPathFinderTile target) =>
             Mathf.RoundToInt(Vector2.SqrMagnitude(target.ModelPosition - next.ModelPosition));
+    }
+
+    public class Path
+    {
+        private List<IPathInfo> _path;
+        private int _index;
+
+        public Path()
+        {
+            _path = new();
+            _index = 0;
+        }
+
+        public bool IsFinished => _index >= _path.Count;
+        public int NextStepCost => _path[_index].Cost;
+        public List<Vector2Int> PathCoordinates => _path.GetRange(_index, _path.Count-_index).Select(t => t.ModelPosition).ToList();
+        public bool TryGetNextStep(out Vector2Int nextPosition)
+        {
+            if(_index < _path.Count)
+            {
+                nextPosition = _path[_index].ModelPosition;
+                _index++;
+                return true;
+            }
+            nextPosition = Vector2Int.zero;
+            return false;
+        }
+        public Vector2Int GetNextStep()
+        {
+            Vector2Int nextPosition = Vector2Int.zero;
+            if (_index < _path.Count)
+            {
+                nextPosition = _path[_index].ModelPosition;
+                _index++;
+            }
+            return nextPosition;
+        }
+
+        public void AddStepinversed(IPathInfo path) => _path.Insert(0, path);
+        public void AddStep(IPathInfo path) => _path.Add(path);
     }
 }

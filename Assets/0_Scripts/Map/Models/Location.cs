@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Rot
 {
-    internal class Location
+    public class Location
     {
         private int _vitality;
         private int _maxVitality;

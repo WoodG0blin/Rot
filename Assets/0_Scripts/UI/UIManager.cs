@@ -11,11 +11,20 @@ namespace Rot
     {
         [SerializeField] private AllUnitsUI _allUnitsUI;
         [SerializeField] private SelectedUnitUI _selectedUnitUI;
+        [SerializeField] private ChoicePanelUI _choiceUI;
         [SerializeField] private Button _nextTurnButton;
 
-        public Action<PlayerUnit> OnUnitSelection;
+        private MapView _mapView;
 
+        internal Func<Vector2Int, List<IDamagable>> GetDamagablesAt;
+        internal Func<Vector2Int, Tile> GetTile;
 
+        internal Action<PlayerUnit> OnUnitSelection;
+
+        internal void Init(MapView mapView)
+        {
+            _mapView = mapView;
+        }
         public void SetUnitsList(List<PlayerUnit> unitsList) => _allUnitsUI.DisplayUnits(unitsList);
         public async Task<ICommand> GetCommand(PlayerUnit unit, List<ICommand> availableCommands)
         {
@@ -37,6 +46,9 @@ namespace Rot
         {
             _nextTurnButton.onClick.AddListener(OnFinishTurnClick);
             _allUnitsUI.OnUnitSelection = OnUnitSelectionRequest;
+            _selectedUnitUI.RequestPathFrom = RequestPathFrom;
+            _selectedUnitUI.RequestTarget = RequestTarget;
+            _selectedUnitUI.RequestTile = RequestTile;
         }
         private void OnFinishTurnClick()
         {
@@ -49,6 +61,20 @@ namespace Rot
             _selectedUnitUI.AbortAwait();
             currentAwaiter?.Finish(false);
         }
+        private async Task<Path> RequestPathFrom(Vector2Int startPosition, Action cancellation, int maxSpeed = 1000)
+        {
+            var result = await _mapView.GetClickInfo(cancellation);
+            if (result != null && !result.IsLeftClick) return PathFinder.GetPath(startPosition, result.MapCoordinates, maxSpeed);
+            return null;
+        }
+        private async Task<IDamagable> RequestTarget(Action cancellation)
+        {
+            var result = await _mapView.GetClickInfo(cancellation);
+            if (result != null && !result.IsLeftClick)
+                return await _choiceUI.GetChoiceAt(GetDamagablesAt(result.MapCoordinates), result.ScreenCoordinates, cancellation);
+            return null;
+        }
+        private Tile RequestTile(Vector2Int position) => GetTile(position);
         private void OnDestroy()
         {
             _nextTurnButton.onClick.RemoveAllListeners();

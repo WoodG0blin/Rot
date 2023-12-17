@@ -5,7 +5,7 @@ using static UnityEngine.Rendering.DebugUI;
 
 namespace Rot
 {
-    internal class Tile : IPathFinderTile, IReceivingInfluence, IBuildable
+    public class Tile : IPathFinderTile, IReceivingInfluence, IBuildable
     {
         private int _vitality;
         private Dictionary<TileDirections, Tile> _adjoiningTiles;

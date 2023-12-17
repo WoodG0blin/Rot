@@ -9,7 +9,7 @@ namespace Rot
     public class UnitView : MonoBehaviour
     {
         public Func<Vector2Int, Vector3> ToWorldCoordinates;
-        public Action<Stack<IPathInfo>> OnDrawPath;
+        public Action<List<Vector2Int>> OnDrawPath;
 
         public Action<Vector2Int> OnPositionChange;
 
@@ -21,6 +21,6 @@ namespace Rot
             transform.position = ToWorldCoordinates(newPosition);
             OnPositionChange?.Invoke(newPosition);
         }
-        public void DrawPath(Stack<IPathInfo> path) => OnDrawPath?.Invoke(path);
+        public void DrawPath(List<Vector2Int> path) => OnDrawPath?.Invoke(path);
     }
 }

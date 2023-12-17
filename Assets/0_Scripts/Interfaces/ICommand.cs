@@ -16,6 +16,7 @@ namespace Rot
         BaseCommand.AdditionalInput ExtraInput { get; }
 
         void SetTarget(IDamagable target);
-        void SetTargetPosition(Vector2Int position);
+        void SetPath(Path path);
+        void SetTile(Tile targetTile);
     }
 }

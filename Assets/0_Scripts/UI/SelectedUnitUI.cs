@@ -16,12 +16,18 @@ namespace Rot
         [SerializeField] private Transform _commandPanel;
         [SerializeField] private TextMeshProUGUI _name;
 
+        private Vector2Int _initialPosition;
         private ICommand _selectedCommand;
-        private CancellationTokenSource _cancelTS;
+        private Action cancel;
+
+        public Func<Vector2Int, Action, int, Task<Path>> RequestPathFrom;
+        public Func<Action, Task<IDamagable>> RequestTarget;
+        public Func<Vector2Int, Tile> RequestTile;
 
         public void SetSelectedUnit(PlayerUnit unit)
         {
             _name.text = unit.Name;
+            _initialPosition = unit.ModelPosition;
             // Displaying icons and stats
         }
         public async Task<ICommand> ChooseCommandFrom(List<ICommand> available)
@@ -41,7 +47,7 @@ namespace Rot
         }
         public void AbortAwait()
         {
-            _cancelTS?.Cancel();
+            cancel?.Invoke();
             currentAwaiter?.Finish(false);
         }
 
@@ -58,32 +64,34 @@ namespace Rot
         }
         private async void SetCommand(ICommand command)
         {
-            _cancelTS?.Cancel();
-            _cancelTS = new();
+            cancel?.Invoke();
+            cancel = null;
             _selectedCommand = command;
 
-            if (await TrySetAdditionalInput(_cancelTS.Token)) currentAwaiter?.Finish(true);
+            if (await TrySetAdditionalInput()) currentAwaiter?.Finish(true);
         }
-        private async Task<bool> TrySetAdditionalInput(CancellationToken cancellation)
+        private async Task<bool> TrySetAdditionalInput()
         {
             bool result = true;
 
             switch (_selectedCommand.ExtraInput)
             {
                 case BaseCommand.AdditionalInput.Position:
-                    Vector2Int? targetPosition = new Vector2Int(0,0); //replace with await with token - position
-                    if (targetPosition != null) _selectedCommand.SetTargetPosition(targetPosition.Value);
+                    var path = await RequestPathFrom(_initialPosition, cancel, (_selectedCommand as MoveCommand).MaxSpeed);
+                    if (path != null) _selectedCommand.SetPath(path);
                     else result = false;
                     break;
                 case BaseCommand.AdditionalInput.Target:
-                    IDamagable target = null; //replace with await with token - target
+                    IDamagable target = await RequestTarget(cancel);
                     if (target != null) _selectedCommand.SetTarget(target);
                     else result = false;
+                    break;
+                case BaseCommand.AdditionalInput.Tile:
+                    _selectedCommand.SetTile(RequestTile(_initialPosition));
                     break;
                 default: break;
             }
 
-            if (cancellation.IsCancellationRequested) result = false;
             return result;
         }
     }
