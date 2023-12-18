@@ -8,7 +8,7 @@ namespace Rot
 {
     public abstract class BaseCommand : ICommand
     {
-        public enum AdditionalInput { None, Position, Target, Tile}
+        public enum AdditionalInput { None, Position, Target, Tile, Location}
 
         public BaseCommand(string name)
         {
@@ -29,7 +29,8 @@ namespace Rot
         public AdditionalInput ExtraInput { get; protected set; }
         public virtual void SetTarget(IDamagable target) { }
         public virtual void SetPath(Path path) { }
-        public virtual void SetTile(Tile targetTile) { }
+        public virtual void SetTile(IReceivingInfluence targetTile) { }
+        public virtual void SetLocation(Location newLocation) { }
     }
 
     internal class AttackCommand : BaseCommand
@@ -129,7 +130,7 @@ namespace Rot
             return 0;
         }
 
-        public override void SetTile(Tile targetTile) => _target = targetTile;
+        public override void SetTile(IReceivingInfluence targetTile) => _target = targetTile;
     }
 
     internal class BuildCommand : BaseCommand
@@ -140,7 +141,7 @@ namespace Rot
 
         public BuildCommand() : base("Build")
         {
-            ExtraInput = AdditionalInput.Tile;
+            ExtraInput = AdditionalInput.Location;
         }
 
         public override async Task<int> Execute(int availableSpeed)
@@ -155,15 +156,17 @@ namespace Rot
             return 0;
         }
 
-        public override void SetTile(Tile targetTile)
+        public override void SetLocation(Location newLocation)
         {
-            _build = targetTile;
-            _counter = _build.RequestBuildRequirements();
+            _build = newLocation;
+            if(_build.IsBuildAvailable) _counter = _build.RequestBuildRequirements();
+            else Finish();
+            Debug.Log($"Setting build with counter {_counter}");
         }
 
         public override void Finish()
         {
-            _build.StopBuild(_buildComplete);
+            _build?.StopBuild(_buildComplete);
             base.Finish();
         }
     }

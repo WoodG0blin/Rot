@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using static UnityEngine.Rendering.DebugUI;
 
 namespace Rot
 {
-    public class Tile : IPathFinderTile, IReceivingInfluence, IBuildable
+    public class Tile : IPathFinderTile, IReceivingInfluence
     {
         private int _vitality;
         private Dictionary<TileDirections, Tile> _adjoiningTiles;
@@ -36,19 +37,6 @@ namespace Rot
         int IPathFinderTile.CostSoFar { get; set; }
         bool IPathFinderTile.NewPath { get; set; }
         IPathFinderTile IPathFinderTile.Previous { get; set; }
-
-
-        internal IBuildable Buildable => this;
-        bool IBuildable.IsBuildAvailable => true;
-        int IBuildable.RequestBuildRequirements()
-        {
-            return 5;
-        }
-
-        void IBuildable.StopBuild(bool finished)
-        {
-            if (finished) SetLocation();
-        }
 
 
         internal Tile(Vector2Int modelPosition)
@@ -108,7 +96,10 @@ namespace Rot
                         _influencingTiles.Add(tt, 6 * BaseValues.InfluenceDecrement);
         }
 
-        internal void SetLocation() => _location ??= new(BaseValues.BaseVitality, 0);
+        internal bool CheckBuildRequirements(int vitalityRequirements) =>
+            Type != TileTypes.Pond;
+
+        internal void SetLocation(Location location) => _location = location;
     }
 }
 

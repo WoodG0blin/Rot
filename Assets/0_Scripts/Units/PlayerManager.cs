@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TMPro.EditorUtilities;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Rot
 {
@@ -13,13 +14,19 @@ namespace Rot
         private UIManager _UImanager;
 
         private List<PlayerUnit> _allUnits;
+        private List<Location> _locations;
+
         private List<PlayerUnit> _killedUnits;
-        
+
         private PlayerUnit _currentAct;
         private TurnController _turnController;
         private bool _autoMode;
 
-        public Func<UnitView> GetPlayerUnitView;
+        public Action<PlayerUnit> RegisterNewUnit;
+        public Func<Vector2Int, Tile> GetTile;
+
+        public Action<Location> OnNewLocation;
+        
         public Action OnTurnEnd;
 
 
@@ -32,11 +39,17 @@ namespace Rot
 
             _allUnits = new();
             _killedUnits = new();
+            _locations = new();
         }
 
         public void Act()
         {
+            if(_allUnits.Count == 0) AddUnit(new(Vector2Int.zero, 0, 3));
+
             ClearKilled();
+
+            foreach (var l in _locations) l.Act();
+
             _UImanager.SetUnitsList(_allUnits);
             _autoMode = false;
 
@@ -45,16 +58,6 @@ namespace Rot
             SetNextTurn();
         }
 
-
-        public void AddUnit(Vector2Int position)
-        {
-            if (_allUnits.Count == 2) return;
-            PlayerUnit newUnit = new(GetPlayerUnitView(), position, BaseValues.BaseVitality, 3, $"PlayerUnit{_allUnits.Count}");
-            newUnit.OnTurnEnd = SetNextTurn;
-            newUnit.RequestCommand = async c => await _UImanager.GetCommand(newUnit, c);
-            newUnit.OnDeath = () => RemoveUnit(newUnit);
-            _allUnits.Add(newUnit);
-        }
 
         private async void SetNextTurn()
         {
@@ -70,9 +73,53 @@ namespace Rot
                 Debug.Log("Finish turn");
             }
         }
-        private void RemoveUnit(PlayerUnit unit)
+        private async Task<ICommand> ProcessUnitCommand(PlayerUnit unit, List<ICommand> commands)
         {
-            if(!_killedUnits.Contains(unit)) _killedUnits.Add(unit);
+            var choice = await _UImanager.GetCommand(unit, commands);
+            
+            switch (choice.ExtraInput)
+            {
+                case BaseCommand.AdditionalInput.Tile:
+                    choice.SetTile(GetTile(unit.ModelPosition));
+                    break;
+                case BaseCommand.AdditionalInput.Location:
+                    SetBuildCommand(unit.ModelPosition, ref choice);
+                    break;
+                default: break;
+            }
+            
+            return choice;
+        }
+        private void SetBuildCommand(Vector2Int position, ref ICommand command)
+        {
+            var existing = _locations.Where(l => l.ModelPosition== position).FirstOrDefault();
+            if (existing == null)
+            {
+                existing = new(position);
+                existing.OnBuildComplete = () => AddLocation(existing);
+                existing.OnNewUnit = AddUnit;
+            }
+
+            if (GetTile(position).CheckBuildRequirements(existing.UnitsLimit)) command.SetLocation(existing);
+            else command = null;
+        }
+        private void AddLocation(Location location)
+        {
+            if (!_locations.Contains(location))
+            {
+                _locations.Add(location);
+                OnNewLocation?.Invoke(location);
+            }
+        }
+        private void AddUnit(PlayerUnit unit)
+        {
+            unit.Name = $"PlayerUnit{_allUnits.Count}";
+            unit.OnTurnEnd = SetNextTurn;
+            unit.RequestCommand = async c => await ProcessUnitCommand(unit, c);
+            unit.OnDeath = () => { if (!_killedUnits.Contains(unit)) _killedUnits.Add(unit); };
+            
+            _allUnits.Add(unit);
+            RegisterNewUnit?.Invoke(unit);
         }
         private void ClearKilled()
         {

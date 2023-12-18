@@ -10,7 +10,6 @@ namespace Rot
 {
     public abstract class BaseUnit : IReceivingInfluence, IDamagable
     {
-
         private int _vitality;
         private int _minVitality;
         private int _maxVitality;
@@ -47,20 +46,18 @@ namespace Rot
         public bool HasTask => currentCommand != null;
         public bool FinishedActions { get; private set; }
 
-        public string Name { get; protected set; }
+        public string Name { get; set; }
         public Sprite Icon { get; protected set; }
         public Vector2Int ModelPosition => modelPosition;
+        public Location InitialLocation { get; protected set; }
 
         internal Action OnTurnEnd { get; set; }
         internal Action OnDeath { get; set; }
 
 
-        public BaseUnit(UnitView view, Vector2Int initialPosition, bool alive, int maxDefence, int speed)
+        public BaseUnit(Vector2Int initialPosition, bool alive, int maxDefence, int speed)
         {
-            unitView= view;
             modelPosition = initialPosition;
-            view.SetInitialPosition(modelPosition);
-            view.OnPositionChange = v => modelPosition = v;
             
             if(alive)
             {
@@ -83,6 +80,18 @@ namespace Rot
         }
 
 
+        public void SetView(UnitView view)
+        {
+            unitView = view;
+            view.SetInitialPosition(modelPosition);
+            view.OnPositionChange = v => modelPosition = v;
+        }
+        public void SetLocation(Location location)
+        {
+            if (InitialLocation != null) InitialLocation.RemoveUnit(this);
+            InitialLocation= location;
+            InitialLocation.AddUnit(this);
+        }
         public abstract void ReceiveExternalInfluence(int externalInfluence);
         public abstract void ReceiveDamage(int damage);
         public void InitAction() => FinishedActions = false;
@@ -164,6 +173,7 @@ namespace Rot
         private async Task RequestHeal() => ReceiveDamage(-BaseValues.BaseVitality / 2);
         private void Die()
         {
+            InitialLocation.RemoveUnit(this);
             unitView.transform.SetParent(null);
             GameObject.Destroy(unitView.gameObject);
             OnDeath?.Invoke();

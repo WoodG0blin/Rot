@@ -22,7 +22,6 @@ namespace Rot
 
         public Func<Vector2Int, Action, int, Task<Path>> RequestPathFrom;
         public Func<Action, Task<IDamagable>> RequestTarget;
-        public Func<Vector2Int, Tile> RequestTile;
 
         public void SetSelectedUnit(PlayerUnit unit)
         {
@@ -85,9 +84,6 @@ namespace Rot
                     IDamagable target = await RequestTarget(cancel);
                     if (target != null) _selectedCommand.SetTarget(target);
                     else result = false;
-                    break;
-                case BaseCommand.AdditionalInput.Tile:
-                    _selectedCommand.SetTile(RequestTile(_initialPosition));
                     break;
                 default: break;
             }

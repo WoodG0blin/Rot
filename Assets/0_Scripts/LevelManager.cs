@@ -27,13 +27,12 @@ namespace Rot
             _UImanager.Init();
             _UImanager.RequestClickInfo = RequestClickInfo;
             _UImanager.GetDamagablesAt = p => null;
-            _UImanager.GetTile = _mapController.GetTile;
 
             _playerManager = new(_UImanager);
-            _playerManager.GetPlayerUnitView = _mapController.InitiateUnit;
+            _playerManager.RegisterNewUnit = _mapController.RegisterUnit;
             _playerManager.OnTurnEnd = SetNextTurn;
-
-            _mapController.OnNewUnit = _playerManager.AddUnit;
+            _playerManager.GetTile = _mapController.GetTile;
+            _playerManager.OnNewLocation = _mapController.RegisterLocation;
 
             _inputManager.OnClick = ReactOnClick;
             _inputManager.OnDrag = _cameraView.MoveCamera;

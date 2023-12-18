@@ -13,9 +13,6 @@ namespace Rot
         private MapView _view;
 
 
-        public Action<Vector2Int> OnNewUnit;
-
-
         internal MapController(MapConfig config, MapView view)
         {
             _config = config;
@@ -32,11 +29,15 @@ namespace Rot
             foreach (var t in _model.AllTiles) t.SetExternalInfluence();
             foreach (var t in _model.AllTiles) t.ProcessExternalInfluence();
             _view.UpdateTiles(_model.AllTiles);
-            OnNewUnit?.Invoke(_model.GetRandomPosition());
         }
 
         public Tile GetTile(Vector2Int modelPosition) => _model[modelPosition.x, modelPosition.y];
-        public UnitView InitiateUnit() => _view.InitiateUnitView();
+        public void RegisterUnit(PlayerUnit unit)
+        {
+            unit.SetView(_view.InitiateUnitView());
+        }
+        public void RegisterLocation(Location location) =>
+            _model[location.ModelPosition.x, location.ModelPosition.y].SetLocation(location);
 
         internal Vector2Int WorldToMapCoordinates(Vector3 worldCoordinates) =>
             _view.WorldToMapCoordinates(worldCoordinates);

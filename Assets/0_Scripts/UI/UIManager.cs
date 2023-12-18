@@ -17,7 +17,6 @@ namespace Rot
 
         internal Func<Action, Task<ClickInfo>> RequestClickInfo;
         internal Func<Vector2Int, List<IDamagable>> GetDamagablesAt;
-        internal Func<Vector2Int, Tile> GetTile;
 
         internal Action<PlayerUnit> OnUnitSelection;
 
@@ -46,7 +45,6 @@ namespace Rot
             _allUnitsUI.OnUnitSelection = OnUnitSelectionRequest;
             _selectedUnitUI.RequestPathFrom = RequestPathFrom;
             _selectedUnitUI.RequestTarget = RequestTarget;
-            _selectedUnitUI.RequestTile = RequestTile;
         }
         private void OnFinishTurnClick()
         {
@@ -72,7 +70,6 @@ namespace Rot
                 return await _choiceUI.GetChoiceAt(GetDamagablesAt(result.MapCoordinates), result.ScreenCoordinates, cancellation);
             return null;
         }
-        private Tile RequestTile(Vector2Int position) => GetTile(position);
         private void OnDestroy()
         {
             _nextTurnButton.onClick.RemoveAllListeners();
