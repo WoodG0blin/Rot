@@ -19,17 +19,14 @@ namespace Rot
         private Vector2[] _baseVectors;
         private Vector2[] _inversedBaseVectors;
         private Func<TileTypes, Material> _getMaterial;
-        private InputManager _inputManager;
 
         private Dictionary<Vector2Int, TileView> _drawnTiles;
         private bool _initiated = false;
 
-        internal Func<Action, Task<ClickInfo>> GetClick;
         internal Action<Vector2Int> OnTileClick;
 
-        internal void Init(InputManager inputManager, Func<TileTypes, Material> getMaterial)
+        internal void Init(Func<TileTypes, Material> getMaterial)
         {
-            _inputManager = inputManager;
             _getMaterial = getMaterial;
             Init();
         }
@@ -89,12 +86,6 @@ namespace Rot
             for(int i = 0; i < path.Count; i++)
                 if (_drawnTiles.ContainsKey(path[i])) _drawnTiles[path[i]].SetSelection(true);
         }
-        internal async Task<ClickInfo> GetClickInfo(Action cancellation)
-        {
-            var info = await GetClick(cancellation);
-            if(info != null) info.MapCoordinates = WorldToMapCoordinates(info.WorldCoordinates);
-            return info;
-        }
 
 
         private void Init()
@@ -142,7 +133,7 @@ namespace Rot
             return new Vector3(Vc.x, 0, Vc.y);
         }
 
-        private Vector2Int WorldToMapCoordinates(Vector3 worldCoordinates)
+        internal Vector2Int WorldToMapCoordinates(Vector3 worldCoordinates)
         {
             Vector2 Vc = new Vector2(worldCoordinates.x, worldCoordinates.z);
             return WorldToHex(Vc);

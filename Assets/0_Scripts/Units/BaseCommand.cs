@@ -107,7 +107,6 @@ namespace Rot
         public override async Task<int> Execute(int availableSpeed)
         {
             //await _requestHeal?.Invoke();
-            Finish();
             return 0;
         }
     }

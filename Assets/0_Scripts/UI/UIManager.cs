@@ -14,17 +14,15 @@ namespace Rot
         [SerializeField] private ChoicePanelUI _choiceUI;
         [SerializeField] private Button _nextTurnButton;
 
-        private MapView _mapView;
 
+        internal Func<Action, Task<ClickInfo>> RequestClickInfo;
         internal Func<Vector2Int, List<IDamagable>> GetDamagablesAt;
         internal Func<Vector2Int, Tile> GetTile;
 
         internal Action<PlayerUnit> OnUnitSelection;
 
-        internal void Init(MapView mapView)
-        {
-            _mapView = mapView;
-        }
+        internal void Init() { }
+
         public void SetUnitsList(List<PlayerUnit> unitsList) => _allUnitsUI.DisplayUnits(unitsList);
         public async Task<ICommand> GetCommand(PlayerUnit unit, List<ICommand> availableCommands)
         {
@@ -63,13 +61,13 @@ namespace Rot
         }
         private async Task<Path> RequestPathFrom(Vector2Int startPosition, Action cancellation, int maxSpeed = 1000)
         {
-            var result = await _mapView.GetClickInfo(cancellation);
+            var result = await RequestClickInfo(cancellation);
             if (result != null && !result.IsLeftClick) return PathFinder.GetPath(startPosition, result.MapCoordinates, maxSpeed);
             return null;
         }
         private async Task<IDamagable> RequestTarget(Action cancellation)
         {
-            var result = await _mapView.GetClickInfo(cancellation);
+            var result = await RequestClickInfo(cancellation);
             if (result != null && !result.IsLeftClick)
                 return await _choiceUI.GetChoiceAt(GetDamagablesAt(result.MapCoordinates), result.ScreenCoordinates, cancellation);
             return null;
