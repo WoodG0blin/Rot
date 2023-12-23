@@ -15,14 +15,8 @@ namespace Rot
 
         public override void ReceiveDamage(int damage)
         {
-            ReceiveExternalInfluence(-damage);
-        }
-
-        public override void ReceiveExternalInfluence(int externalInfluence)
-        {
-            int value = externalInfluence;
-            TryChangeDefence(ref value);
-            TryChangeVitality(ref value);
+            int influence = -damage;
+            TryGetInfluence(ref influence);
         }
 
 

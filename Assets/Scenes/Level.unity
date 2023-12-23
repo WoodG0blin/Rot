@@ -699,7 +699,6 @@ MonoBehaviour:
   _selectedUnitUI: {fileID: 861029707}
   _choiceUI: {fileID: 1614234722}
   _nextTurnButton: {fileID: 1565635760}
-  _mapView: {fileID: 983930953}
 --- !u!224 &946994013
 RectTransform:
   m_ObjectHideFlags: 0
@@ -818,6 +817,8 @@ MonoBehaviour:
     type: 3}
   _tileParent: {fileID: 1929213129}
   _unitPrefab: {fileID: 6550563909059827341, guid: a6ba1bdd7c395e545b2c5e588887bce2,
+    type: 3}
+  _enemyUnitPrefab: {fileID: 6550563909059827341, guid: 5663d4f102f5df146885ca88bb8a2b72,
     type: 3}
   _unitsParent: {fileID: 1808551243}
 --- !u!4 &983930954

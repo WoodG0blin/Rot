@@ -18,6 +18,6 @@ namespace Rot
         void SetTarget(IDamagable target);
         void SetPath(Path path);
         void SetTile(IReceivingInfluence targetTile);
-        void SetLocation(Location newLocation);
+        void SetLocation(PlayerLocation newLocation);
     }
 }

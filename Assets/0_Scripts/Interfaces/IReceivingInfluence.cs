@@ -6,8 +6,7 @@ namespace Rot
 {
     public interface IReceivingInfluence
     {
-        int Vitality { get; }
-        bool IsAlive { get; }
-        void ReceiveExternalInfluence(int externalInfluence);
+        //int Vitality { get; }
+        void TryGetInfluence(ref int externalInfluence);
     }
 }

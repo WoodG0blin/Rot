@@ -11,9 +11,9 @@ namespace Rot
         public int Cost { get; private set; }
 
 
-        public void Attack(IReceivingInfluence target)
+        public void Attack(IDamagable target)
         {
-            target.ReceiveExternalInfluence(Damage);
+            target.ReceiveDamage(Damage);
         }
     }
 }

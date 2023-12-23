@@ -13,6 +13,7 @@ namespace Rot
         [SerializeField] private Transform _selection;
         [SerializeField] private Transform _mask;
         [SerializeField] private Transform _location;
+        [SerializeField] private Transform _enemyLocation;
         [SerializeField] private TextMeshProUGUI _message;
         [SerializeField] private TextMeshProUGUI _locationMessage;
 
@@ -40,12 +41,20 @@ namespace Rot
 
             selected = false;
         }
-        public void UpdateTile(bool isAlive, int vitality, bool hasLocation, int locationVitality)
+        public void UpdateTile(bool isAlive, int vitality, BaseLocation location)
         {
             SetMask(!isAlive);
             _message.text = vitality.ToString();
-            _location.gameObject.SetActive(hasLocation);
-            if (hasLocation) _locationMessage.text = locationVitality.ToString();
+            ShowLocation(location);
+        }
+
+        private void ShowLocation(BaseLocation location)
+        {
+            _location.parent.gameObject.SetActive(location != null);
+
+            _location.gameObject.SetActive(location is PlayerLocation);
+            _enemyLocation.gameObject.SetActive(location is EnemyLocation);
+            if(location != null) _locationMessage.text = location.Vitality.ToString();
         }
 
         public void SetSelection(bool selected) =>

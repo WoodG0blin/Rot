@@ -17,6 +17,7 @@ namespace Rot
 
         private MapController _mapController;
         private PlayerManager _playerManager;
+        private EnemyManager _enemyManager;
 
         private bool _finish = false;
 
@@ -34,11 +35,18 @@ namespace Rot
             _playerManager.GetTile = _mapController.GetTile;
             _playerManager.OnNewLocation = _mapController.RegisterLocation;
 
+            _enemyManager = new();
+            _enemyManager.RegisterNewUnit = _mapController.RegisterUnit;
+            _enemyManager.OnNewLocation = _mapController.RegisterLocation;
+            _mapController.OnNewDeadTile = _enemyManager.AddNewTile;
+            _mapController.OnRemovedDeadTile = _enemyManager.RemoveTile;
+
             _inputManager.OnClick = ReactOnClick;
             _inputManager.OnDrag = _cameraView.MoveCamera;
             _inputManager.OnScroll = _cameraView.ZoomCamera;
             _inputManager.OnExit = () => _finish = true;
 
+            _mapController.InitEnemy();
             SetNextTurn();
         }
 
@@ -46,6 +54,7 @@ namespace Rot
         {
             if(!_finish)
             {
+                _enemyManager.Act();
                 _mapController.Act();
                 _playerManager.Act();
             }

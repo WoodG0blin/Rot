@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,7 @@ namespace Rot
             }
         }
         internal List<Tile> AllTiles => _allTiles;
-
+        internal Action<Tile> OnTileStatusChanged { get; set; }
 
         internal MapModel(MapConfig config)
         {
@@ -49,7 +50,7 @@ namespace Rot
 
             PathFinder.Init(this);
         }
-        internal Vector2Int GetRandomPosition() => AllTiles[Random.Range(0, AllTiles.Count)].ModelPosition;
+        internal Vector2Int GetRandomPosition() => AllTiles[UnityEngine.Random.Range(0, AllTiles.Count)].ModelPosition;
 
         private int GetBaseIndex(int centeredIndex)
         {
@@ -73,6 +74,7 @@ namespace Rot
                     _baseArray[x, y] = t;
                     t.Init(_config.GetTileConfig(_config.GetRandomTileType()));
                     SetAdjoiningTilesAt(x, y);
+                    t.OnStatusChanged = () => OnTileStatusChanged?.Invoke(t);
                     _allTiles.Add(t);
                 }
             }
@@ -99,7 +101,8 @@ namespace Rot
                 enemyStart = UnityEngine.Random.Range(0, AllTiles.Count);
 
             EnemyStartPosition = AllTiles[enemyStart].ModelPosition;
-            AllTiles[enemyStart].ReceiveExternalInfluence(-BaseValues.BaseVitality);
+            int influence = -BaseValues.BaseVitality;
+            AllTiles[enemyStart].TryGetInfluence(ref influence);
         }
     }
 }

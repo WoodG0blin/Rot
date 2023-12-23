@@ -14,6 +14,7 @@ namespace Rot
         [SerializeField] Transform tilePrefab;
         [SerializeField] Transform _tileParent;
         [SerializeField] GameObject _unitPrefab;
+        [SerializeField] GameObject _enemyUnitPrefab;
         [SerializeField] Transform _unitsParent;
 
         private Vector2[] _baseVectors;
@@ -41,7 +42,7 @@ namespace Rot
             {
                 var t = Instantiate(tilePrefab, _tileParent).GetComponent<TileView>();
                 t.Init(MapToWorldCoordinates(tile.ModelPosition), _getMaterial?.Invoke(tile.Type));
-                t.UpdateTile(tile.IsAlive, tile.Vitality, tile.HasLocation, tile.HasLocation ? tile.Location.Vitality : 0);
+                t.UpdateTile(tile.IsAlive, tile.Vitality, tile.Location);
                 _drawnTiles.Add(tile.ModelPosition, t);
             }
         }
@@ -50,7 +51,7 @@ namespace Rot
         {
             foreach (var t in tiles)
                 if (_drawnTiles.ContainsKey(t.ModelPosition))
-                    _drawnTiles[t.ModelPosition].UpdateTile(t.IsAlive, t.Vitality, t.HasLocation, t.HasLocation ? t.Location.Vitality : 0);
+                    _drawnTiles[t.ModelPosition].UpdateTile(t.IsAlive, t.Vitality, t.Location);
         }
 
         internal void ProcessClick(Vector3 position)
@@ -64,9 +65,9 @@ namespace Rot
                 OnTileClick?.Invoke(modelCoordinates);
             }
         }
-        internal UnitView InitiateUnitView()
+        internal UnitView InitiateUnitView(bool player = true)
         {
-            UnitView view = GameObject.Instantiate(_unitPrefab, _unitsParent).GetComponent<UnitView>();
+            UnitView view = GameObject.Instantiate(player ? _unitPrefab : _enemyUnitPrefab, _unitsParent).GetComponent<UnitView>();
             view.ToWorldCoordinates = MapToWorldCoordinates;
             view.OnDrawPath = DrawPath;
             return view;

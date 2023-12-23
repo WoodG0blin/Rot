@@ -14,7 +14,7 @@ namespace Rot
         private UIManager _UImanager;
 
         private List<PlayerUnit> _allUnits;
-        private List<Location> _locations;
+        private List<PlayerLocation> _locations;
 
         private List<PlayerUnit> _killedUnits;
 
@@ -25,7 +25,7 @@ namespace Rot
         public Action<PlayerUnit> RegisterNewUnit;
         public Func<Vector2Int, Tile> GetTile;
 
-        public Action<Location> OnNewLocation;
+        public Action<PlayerLocation> OnNewLocation;
         
         public Action OnTurnEnd;
 
@@ -76,7 +76,9 @@ namespace Rot
         private async Task<ICommand> ProcessUnitCommand(PlayerUnit unit, List<ICommand> commands)
         {
             var choice = await _UImanager.GetCommand(unit, commands);
-            
+
+            if (choice == null) return choice;
+
             switch (choice.ExtraInput)
             {
                 case BaseCommand.AdditionalInput.Tile:
@@ -97,13 +99,13 @@ namespace Rot
             {
                 existing = new(position);
                 existing.OnBuildComplete = () => AddLocation(existing);
-                existing.OnNewUnit = AddUnit;
+                existing.OnNewUnit = u => AddUnit(u as PlayerUnit);
             }
 
             if (GetTile(position).CheckBuildRequirements(existing.UnitsLimit)) command.SetLocation(existing);
             else command = null;
         }
-        private void AddLocation(Location location)
+        private void AddLocation(PlayerLocation location)
         {
             if (!_locations.Contains(location))
             {

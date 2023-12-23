@@ -30,7 +30,7 @@ namespace Rot
         public virtual void SetTarget(IDamagable target) { }
         public virtual void SetPath(Path path) { }
         public virtual void SetTile(IReceivingInfluence targetTile) { }
-        public virtual void SetLocation(Location newLocation) { }
+        public virtual void SetLocation(PlayerLocation newLocation) { }
     }
 
     internal class AttackCommand : BaseCommand
@@ -125,7 +125,8 @@ namespace Rot
 
         public override async Task<int> Execute(int availableSpeed)
         {
-            _target?.ReceiveExternalInfluence(_influence);
+            int influence = _influence;
+            _target?.TryGetInfluence(ref influence);
             Finish();
             return 0;
         }
@@ -156,7 +157,7 @@ namespace Rot
             return 0;
         }
 
-        public override void SetLocation(Location newLocation)
+        public override void SetLocation(PlayerLocation newLocation)
         {
             _build = newLocation;
             if(_build.IsBuildAvailable) _counter = _build.RequestBuildRequirements();

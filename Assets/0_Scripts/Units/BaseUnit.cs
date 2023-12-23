@@ -49,8 +49,9 @@ namespace Rot
         public string Name { get; set; }
         public Sprite Icon { get; protected set; }
         public Vector2Int ModelPosition => modelPosition;
-        public Location InitialLocation { get; protected set; }
+        public BaseLocation InitialLocation { get; protected set; }
 
+        internal Action<Vector2Int, Vector2Int> OnPositionChange { get; set; }
         internal Action OnTurnEnd { get; set; }
         internal Action OnDeath { get; set; }
 
@@ -84,15 +85,23 @@ namespace Rot
         {
             unitView = view;
             view.SetInitialPosition(modelPosition);
-            view.OnPositionChange = v => modelPosition = v;
+            view.OnPositionChange = v =>
+            {
+                OnPositionChange?.Invoke(modelPosition, v);
+                modelPosition = v;
+            };
         }
-        public void SetLocation(Location location)
+        public void SetLocation(BaseLocation location)
         {
             if (InitialLocation != null) InitialLocation.RemoveUnit(this);
             InitialLocation= location;
             InitialLocation.AddUnit(this);
         }
-        public abstract void ReceiveExternalInfluence(int externalInfluence);
+        public void TryGetInfluence(ref int externalInfluence)
+        {
+            TryChangeDefence(ref externalInfluence);
+            TryChangeVitality(ref externalInfluence);
+        }
         public abstract void ReceiveDamage(int damage);
         public void InitAction() => FinishedActions = false;
         public async void Act(bool auto = false)
@@ -139,15 +148,15 @@ namespace Rot
             unitView.DrawPath(null);
             return res;
         }
-        protected abstract List<ICommand> InitiateSpecificCommands();
+        protected virtual List<ICommand> InitiateSpecificCommands() => new();
         protected abstract Task<ICommand> SelectCommand(List<ICommand> availableCommands);
-        protected void TryChangeDefence(ref int change)
+        protected virtual void TryChangeDefence(ref int change)
         {
             var targetDefence = Defence + change;
             Defence += change;
             change = targetDefence - Defence;
         }
-        protected void TryChangeVitality(ref int change)
+        protected virtual void TryChangeVitality(ref int change)
         {
             var targetVitality = Vitality + change;
             Vitality += change;
@@ -173,7 +182,7 @@ namespace Rot
         private async Task RequestHeal() => ReceiveDamage(-BaseValues.BaseVitality / 2);
         private void Die()
         {
-            InitialLocation.RemoveUnit(this);
+            InitialLocation?.RemoveUnit(this);
             unitView.transform.SetParent(null);
             GameObject.Destroy(unitView.gameObject);
             OnDeath?.Invoke();
