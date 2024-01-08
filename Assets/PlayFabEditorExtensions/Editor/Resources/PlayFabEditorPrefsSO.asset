@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d0199c11aa6f514784c5c69cd8378d8, type: 3}
+  m_Name: PlayFabEditorPrefsSO
+  m_EditorClassIdentifier: 
+  DevAccountEmail: pasynkov.aleksey@gmail.com
+  DevAccountToken: 53dy7jqdcbf8xfcqq9f7r8puge8zhdw8gd9oknp7bjdccezcsugng3toxsesw56443http4s9qg5wwisx18kzre8iqw8mob7dzib8errepjccxsk1acj4p7f77s468wdrmef8gz5xbu89nrppr56n17j6igxhkn8uuepuw79mcnw7au49a1nhigek6gg1owck1xkez94
+  AadAuthorization: 
+  SelectedStudio: WoodGoblinStd
+  SdkPath: Assets/PlayFabSDK
+  EdExPath: 
+  LocalCloudScriptPath: 
+  PanelIsShown: 0
+  curMainMenuIdx: 1
+  curSubMenuIdx: 0
