@@ -13,7 +13,7 @@ namespace Rot
         [SerializeField] private Button _settings;
         [SerializeField] private Button _exit;
         [SerializeField] private PlayFabLogin _playfabLogin;
-
+        [SerializeField] private LobbyUI _lobby;
 
         void Start()
         {
@@ -34,8 +34,12 @@ namespace Rot
             _multiPlayer.enabled = false;
 
             if (await _playfabLogin.LogIn())
-                Debug.Log("Loading in multiplayer mode");
-            else Debug.Log("Cannot enter account");
+            {
+                if(await _lobby.ConnectToGameServer())
+                    Debug.Log("Loading in multiplayer mode");
+                else Debug.Log("Photon connection not established");
+            }
+            else Debug.Log("Cannot enter PlayFab account");
 
             _multiPlayer.enabled = true;
         }

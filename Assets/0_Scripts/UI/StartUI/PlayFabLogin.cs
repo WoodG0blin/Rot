@@ -26,7 +26,7 @@ namespace Rot
             _clickArea.onClick.AddListener(() => LogIn());
 
             if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
-                PlayFabSettings.staticSettings.TitleId = "";
+                PlayFabSettings.staticSettings.TitleId = "DFF3F";
         }
 
         public async Task<bool> LogIn()
