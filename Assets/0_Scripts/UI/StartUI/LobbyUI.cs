@@ -28,8 +28,8 @@ namespace Rot
 
         public async Task<bool> ConnectToGameServer()
         {
+            _lobbyPanel.SetActive(true);
             _photonLobby.Connect(OnConnection);
-            Debug.Log("Started connect to master server");
             await this;
             _lobbyPanel.SetActive(false);
             return currentAwaiter.GetResult();
@@ -37,14 +37,13 @@ namespace Rot
 
         private void OnConnection(bool success)
         {
-            Debug.Log("Started connect to game server");
             if (success)
             {
-                _lobbyPanel.SetActive(true);
                 Debug.Log("Setting list of rooms");
                 _photonLobby.ConnectToRoom(OnJoinRoom);
                 _play.enabled = false;
             }
+            else currentAwaiter?.Finish(false);
         }
         private void OnJoinRoom(bool success)
         {

@@ -40,28 +40,25 @@ namespace Rot
 
         public void ConnectToRoom(Action<bool> OnRoomJoined)
         {
-            _onConnectedToRoom = OnRoomJoined;
-            PhotonNetwork.JoinRandomRoom();
+            if (PhotonNetwork.IsConnected)
+            {
+                _onConnectedToRoom = OnRoomJoined;
+                PhotonNetwork.JoinRandomOrCreateRoom();
+            }
         }
 
         public override void OnConnectedToMaster()
         {
+            Debug.Log("Connected to Photon master server");
             _onConnectToLobby?.Invoke(true);
             _onConnectToLobby = null;
-            Debug.Log("Connected to Photon master server");
-        }
-        public override void OnConnected()
-        {
-            _onConnectToLobby?.Invoke(true);
-            _onConnectToLobby = null;
-            Debug.Log("Connected to Photon master server");
         }
 
         public override void OnJoinedRoom()
         {
+            Debug.Log("Connected to Photon room");
             _onConnectedToRoom?.Invoke(true);
             _onConnectedToRoom=null;
-            Debug.Log("Connected to Photon room");
         }
         public override void OnErrorInfo(ErrorInfo errorInfo)
         {
@@ -71,9 +68,9 @@ namespace Rot
         }
         public override void OnDisconnected(DisconnectCause cause)
         {
+            Debug.Log("Disconnected from Photon master server");
             _onDisconnectFromLobby?.Invoke();
             _onDisconnectFromLobby = null;
-            Debug.Log("Disconnected from Photon master server");
         }
     }
 }
